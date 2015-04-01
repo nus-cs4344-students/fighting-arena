@@ -140,13 +140,13 @@ function create() {
     platforms.enableBody = true;
 
     // create the ground.
-    var ground = platforms.create(0, game.world.height - 64, 'ground');
+    // var ground = platforms.create(0, game.world.height - 64, 'ground');
 
     //  scale ground
-    ground.scale.setTo(2, 2);
+    // ground.scale.setTo(2, 2);
 
     //  ground never moves
-    ground.body.immovable = true;
+    // ground.body.immovable = true;
 
     //  create two ledges
     var ledge = platforms.create(400, 400, 'ground');
@@ -163,7 +163,7 @@ function create() {
 
     //  add physics attributes to player
     player.body.bounce.y = 0.2;
-    player.body.gravity.y = 300;
+    // player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
 
     // add player animation using sprite 
@@ -177,7 +177,7 @@ function create() {
     stars.enableBody = true;
 
     //  Here we'll create 12 of them evenly spaced apart
-    for (var i = 0; i < 12; i++)
+    for (var i = 0; i < 2; i++)
     {
         //  Create a star inside of the 'stars' group
         var star = stars.create(i * 70, 0, 'star');
@@ -228,15 +228,19 @@ function update() {
     {
         //  Stand still
         player.animations.stop();
-
         player.frame = 4;
     }
     
     //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down)
+    if (cursors.up.isDown)
     {
-        player.body.velocity.y = -350;
+        player.body.velocity.y = -120;
     }
+
+    else if (cursors.down.isDown)
+    {
+        player.body.velocity.y = 120;
+    } 
 
 }
 
