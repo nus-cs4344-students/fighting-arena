@@ -13,6 +13,7 @@ var currentWeapon = 0 ;
 var Weapon = {};
 var weapons = [];
 var starX;
+var isWalking = true;
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 
@@ -152,12 +153,13 @@ function nextWeapon() {
 
 function preload() {
     //for cropping the image
-    frameWidth = 
+    frameWidth = 150;
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
-    game.load.spritesheet('louis_walk','assets/louis_0.png',150, 150, -1,15,10);
+    game.load.spritesheet('louis_walk','assets/characters/louis_0.png',frameWidth, 150, -1,15,10);
+    game.load.spritesheet('louis_hit','assets/characters/louis_1.png',frameWidth,150,-1,15,10);
     for (var i = 1; i <= 11; i++)
     {
         game.load.image('bullet' + i, 'assets/bullet' + i + '.png');
@@ -208,6 +210,7 @@ function create() {
 
     // add player animation using sprite 
 
+    //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
     player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
     player.animations.add('leftWalk', [7,6,5,4,3], 10, true);
     //  Finally some stars to collect
@@ -273,6 +276,8 @@ function create() {
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
+    this.input.keyboard.addKeyCapture([Phaser.Keyboard.D]);
+
 //    var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 //    changeKey.onDown.add(nextWeapon, this);
 }
@@ -307,8 +312,18 @@ function update() {
     {
         //  Stand still
         player.animations.stop();
-
+        player.loadTexture('louis_walk');
+        isWalking = true;
         player.frame = 10;
+    }
+    
+    if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+        if(isWalking){
+            player.loadTexture('louis_hit');
+            isWalking= false;
+        }
+        player.animations.add('right_hit', [10,11,12,13], 10, true);
+        player.animations.play('right_hit');
     }
 
     if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
@@ -321,7 +336,6 @@ function update() {
     {
         player.body.velocity.y = -350;
     }
-
 }
 
 function fire () {
