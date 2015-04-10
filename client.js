@@ -14,6 +14,7 @@ var Weapon = {};
 var weapons = [];
 var starX;
 var isWalking = true;
+
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 
@@ -153,13 +154,14 @@ function nextWeapon() {
 
 function preload() {
     //for cropping the image
-    frameWidth = 150;
+    frameWidth = 64;
+    frameHeight = 65;
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
-    game.load.spritesheet('louis_walk','assets/characters/louis_0.png',frameWidth, 150, -1,15,10);
-    game.load.spritesheet('louis_hit','assets/characters/louis_1.png',frameWidth,150,-1,15,10);
+    //-1 is for frameMax 5 is for margin, 0 for spacing
+    game.load.spritesheet('louis','assets/characters/louis.png',frameWidth, frameHeight, -1,1,0);
     for (var i = 1; i <= 11; i++)
     {
         game.load.image('bullet' + i, 'assets/bullet' + i + '.png');
@@ -198,8 +200,8 @@ function create() {
     ledge.body.immovable = true;
 
     // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'louis_walk');
-    player.scale.setTo(0.5,0.5);
+    player = game.add.sprite(32, game.world.height - 150, 'louis');
+    player.scale.setTo(1,1);
     //  enable physics on player
     game.physics.arcade.enable(player);
 
@@ -211,8 +213,13 @@ function create() {
     // add player animation using sprite 
 
     //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
-    player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
+    player.animations.add('rightWalk', [13,14,15,16], 10, true);
     player.animations.add('leftWalk', [7,6,5,4,3], 10, true);
+    player.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
+    player.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
+    player.animations.add('leftKick',[],10,true);
+    player.animations.add('rightKick',[],10,true);
+
     //  Finally some stars to collect
     stars = game.add.group();
 
@@ -243,33 +250,6 @@ function create() {
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
 
-    // for (var i = 0; i < 10; i++)
-    // {
-    //     var explosionAnimation = explosions.create(0, 0, 'kaboom', [0], false);
-    //     explosionAnimation.anchor.setTo(0.5, 0.5);
-    //     explosionAnimation.animations.add('kaboom');
-    // }
-
-    // //Create Weapons
-    // weapons.push(new Weapon.SingleBullet(game));
-    // weapons.push(new Weapon.FrontAndBack(game));
-    // weapons.push(new Weapon.ThreeWay(game));
-    // weapons.push(new Weapon.EightWay(game));
-    // weapons.push(new Weapon.ScatterShot(game));
-    // weapons.push(new Weapon.Beam(game));
-    // weapons.push(new Weapon.SplitShot(game));
-    // weapons.push(new Weapon.Pattern(game));
-    // weapons.push(new Weapon.Rockets(game));
-    // weapons.push(new Weapon.ScaleBullet(game));
-    // weapons.push(new Weapon.Combo1(game));
-    // weapons.push(new Weapon.Combo2(game));   
-   
-    // currentWeapon = 0;
-    // for (var i = 1; i < weapons.length; i++)
-    // {
-    //     weapons[i].visible = false;
-    // }
-
     //  The score
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
@@ -277,8 +257,9 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.D]);
+    this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
 
-//    var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+    var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 //    changeKey.onDown.add(nextWeapon, this);
 }
 
@@ -297,37 +278,44 @@ function update() {
     if (cursors.left.isDown)
     {
         //  Move to the left
-        player.body.velocity.x = -150;
-
-        player.animations.play('leftWalk');
+        player.body.velocity.x = -20;
+        if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+            player.animations.play('leftHit');
+        }else if(this.input.keyboard.isDown(Phaser.Keyboard.A)){
+            player.animations.play('leftKick');
+        }
+        else{
+            player.body.velocity.x = -150;
+            player.animations.play('leftWalk');
+        }
     }
     else if (cursors.right.isDown)
     {
         //  Move to the right
-        player.body.velocity.x = 150;
-
-        player.animations.play('rightWalk');
+        player.body.velocity.x = 20;
+        if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+            player.animations.play('rightHit');
+        }else if(this.input.keyboard.isDown(Phaser.Keyboard.A)){
+            player.animations.play('rightKick');
+        }else{
+            player.body.velocity.x = 150;
+            player.animations.play('rightWalk');
+        }
     }
-    else
-    {
+
+    else{
         //  Stand still
-        player.animations.stop();
-        player.loadTexture('louis_walk');
-        isWalking = true;
-        player.frame = 10;
+        if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+            player.animations.play('rightHit');
+        }else if(this.input.keyboard.isDown(Phaser.Keyboard.A)){
+            player.animations.play('rightKick');
+        }else{
+            player.animations.stop();
+            player.frame = 10;
+        }
     }
     
-    if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-        if(isWalking){
-            player.loadTexture('louis_hit');
-            isWalking= false;
-        }
-        player.animations.add('right_hit', [10,11,12,13], 10, true);
-        player.animations.play('right_hit');
-    }
-
-    if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-    {
+    if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
         fire();
     }
     
