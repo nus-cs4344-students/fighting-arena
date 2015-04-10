@@ -14,9 +14,9 @@ var Weapon = {};
 var weapons = [];
 var starX;
 var isWalking = true;
+var isJumping = false;
 
 var game = new Phaser.Game(794, 389, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-
 
 /*
  * private method: showMessage(location, msg)
@@ -208,8 +208,9 @@ function create() {
     game.physics.arcade.enable(player);
 
     //  add physics attributes to player
-    player.body.bounce.y = 0.2;
-    player.body.gravity.y = 400;
+    //player.body.bounce.y = 0.2;
+    //player.body.gravity.y = 400;
+    //player.body.gravity.y = 5;
     player.body.collideWorldBounds = true;
 
     // add player animation using sprite 
@@ -260,6 +261,7 @@ function create() {
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.D]);
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
+    this.input.keyboard.addKeyCapture([Phaser.Keyboard.S]);
 
     var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 //    changeKey.onDown.add(nextWeapon, this);
@@ -322,10 +324,48 @@ function update() {
     }
     
     //  Allow the player to jump if they are touching the ground.
+    /*
     if (cursors.up.isDown && player.body.touching.down)
     {
         player.body.velocity.y = -350;
     }
+    */
+
+    // when up is down, move upwards instead of jumping
+    if(cursors.up.isDown)
+    {
+        if(player.body.y >= 100)
+        {
+            player.body.y -= 1;
+        }
+    }
+
+    if(cursors.down.isDown)
+    {
+        player.body.y += 1;
+    }
+
+    /*
+    if(this.input.keyboard.isDown(Phaser.Keyboard.S)){
+        // add a timer
+        var first;
+        var current;
+        if(!isJumping)
+        {
+            first = game.time.time;
+            current = game.time.time;
+            isJumping = true;
+        }
+
+        while(current - first < 2*1000)
+        {
+            player.body.y -= 2;
+            current = game.time.time;
+            console.log(first + ' ' + current);
+        }
+        //player.body.y -= 2;
+    }
+    */
 }
 
 function fire () {
