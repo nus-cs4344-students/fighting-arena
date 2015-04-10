@@ -15,7 +15,7 @@ var weapons = [];
 var starX;
 var isWalking = true;
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(794, 389, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 
 /*
@@ -156,7 +156,7 @@ function preload() {
     //for cropping the image
     frameWidth = 64;
     frameHeight = 65;
-    game.load.image('sky', 'assets/sky.png');
+    game.load.image('sky', 'assets/back08.jpg');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
@@ -184,7 +184,7 @@ function create() {
     platforms.enableBody = true;
 
     // create the ground.
-    var ground = platforms.create(0, game.world.height - 64, 'ground');
+    var ground = platforms.create(0, game.world.height-0.5, 'ground');
 
     //  scale ground
     ground.scale.setTo(2, 2);
@@ -193,12 +193,14 @@ function create() {
     ground.body.immovable = true;
 
     //  create two ledges
+    /*
     var ledge = platforms.create(400, 400, 'ground');
     ledge.body.immovable = true;
 
     ledge = platforms.create(-150, 250, 'ground');
     ledge.body.immovable = true;
-
+	*/
+	
     // The player and its settings
     player = game.add.sprite(32, game.world.height - 150, 'louis');
     player.scale.setTo(1,1);
