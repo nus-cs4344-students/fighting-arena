@@ -17,7 +17,7 @@ function FighterClient(){
     var currentWeapon = 0 ;
     var Weapon = {};
     var weapons = [];
-    var starX;
+    var serverMsg;
     var hasPlayed = false;
     var game ;
     /*
@@ -81,7 +81,7 @@ function FighterClient(){
                         appendMessage("serverMsg", message.content);
                         break;
                     case "update": 
-                        console.log(message);
+                        serverMsg = message;
                         break;
                     case "updateVelocity": 
                         var t = message.timestamp;
@@ -202,13 +202,16 @@ function FighterClient(){
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.D]);
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
-
         var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
         //    changeKey.onDown.add(nextWeapon, this);
     }
 
     function update() {
-
+        if(serverMsg != undefined){
+            console.log(serverMsg);
+            player.body.x = serverMsg.x;
+            player.body.y = serverMsg.y;
+        }
 
         // game.physics.arcade.collide(player,opponent);
 
@@ -217,22 +220,22 @@ function FighterClient(){
         game.physics.arcade.overlap(player, stars, collectStar, null, this);
         //  Reset the players velocity (movement)
         player.body.velocity.x = 0;
-
+        
         if(cursors.up.isDown){
             sendToServer({type:"move", y:-1});
-            (player.body.y >= 100)
-            {
-                player.body.y -= 1;
-            }
+            // (player.body.y >= 100)
+            // {
+            //     player.body.y -= 1;
+            // }
         }else if(cursors.down.isDown){
-            player.body.y += 1;
+            //player.body.y += 1;
             sendToServer({type:"move",y:+1});
         }
 
         if (cursors.left.isDown)
         {
             //  Move to the left
-            player.body.velocity.x = -20;
+            //player.body.velocity.x = -20;
 
             if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
                 player.animations.play('leftHit');
@@ -240,43 +243,28 @@ function FighterClient(){
                 //hit -1 means hit from left side
                 playerStatus = 1;
             } else{
-                player.body.velocity.x = -150;
+                //player.body.velocity.x = -150;
                 player.animations.play('leftWalk');
                 sendToServer({type:"move",x:-1});
             }
         }
-        
         else if (cursors.right.isDown)
         {
             //  Move to the right
-            player.body.velocity.x = 20;
+            //player.body.velocity.x = 20;
             if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
                 player.animations.play('rightHit');
                 //1 means for 
                 sendToServer({type:"hit",status:1});
                 playerStatus = 1;
             }else{
-                player.body.velocity.x = 150;
+                //player.body.velocity.x = 150;
                 sendToServer({type:"move",x:1});
                 player.animations.play('rightWalk');
             }
         }else if (game.input.pointer1.isDown){
             player.animations.play('rightWalk');
             player.body.velocity.x = 150;
-            // if (Math.floor(game.input.x/(game.width/2)) === LEFT) {
-            //   //  Move to the left
-            //   player.body.velocity.x = 150;
-         
-            //   player.animations.play('rightWalk');
-            // }
-         
-            // if (Math.floor(game.input.x/(game.width/2)) === RIGHT) {
-            //   //  Move to the right
-            //   player.body.velocity.x = -150;
-         
-            //   player.animations.play('leftWalk');
-            // }
-      
         }
         else{
             //  Stand still

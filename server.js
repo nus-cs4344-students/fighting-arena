@@ -93,17 +93,17 @@ function Server() {
             for (id in players){
                 var p = players[id];
                 // Update on player side
-                var bx = p.fighter.x;
-                var by = p.fighter.y;
+                var x = p.fighter.x;
+                var y = p.fighter.y;
                 var date = new Date();
                 var currentTime = date.getTime();
                 var states = { 
                     type: "update",
                     timestamp: currentTime,
-                    px: bx,
-                    py: by,
+                    x: x,
+                    y: y,
                     pid: p.pid,
-                    state: p.status
+                    status: p.status
             }
             broadcast(states);
         }

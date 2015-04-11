@@ -28,8 +28,8 @@ function Fighter(xPos,yPos,status){
 	this.hp = 100;
 	this.x = xPos;
 	this.y = yPos;
-    this.vx = 150; // scaling factor is 10
-    this.vy = 1;
+    this.vx = 2; // scaling factor is 10
+    this.vy = 2;
     this.status = status;
 }
 
