@@ -10,6 +10,7 @@ function Player(sid, pid, yPos) {
     this.sid = sid;
     this.pid = pid;
     this.lastUpdated = new Date().getTime();
+    this.fighter = new Fighter(100, 100, 0);
 
     /*
      * priviledge method: getDelay

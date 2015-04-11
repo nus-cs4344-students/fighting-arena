@@ -234,7 +234,7 @@ function FighterClient(){
                 player.body.y -= 1;
             }
         }else if(cursors.down.isDown){
-            player.body.y+= 1;
+            player.body.y += 1;
             sendToServer({type:"move",y:+1});
         }
 

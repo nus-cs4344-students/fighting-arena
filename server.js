@@ -16,6 +16,7 @@
 
 var LIB_PATH = "./";
 require(LIB_PATH + 'setting.js');
+require(LIB_PATH + 'player.js');
 
 function Server() {
     // Private Variables
@@ -83,6 +84,28 @@ function Server() {
         nextPID = count
     }
 
+    var gameLoop = function () {
+        // Check if ball is moving
+
+            for (p in players){
+            // Update on player side
+
+            var bx = p.fighter.x;
+            var by = p.fighter.y;
+            var date = new Date();
+            var currentTime = date.getTime();
+            var states = { 
+                type: "update",
+                timestamp: currentTime,
+                px: bx,
+                py: by,
+                pid: p.pid,
+                state: p.status
+            };
+            broadcast(states)
+        }
+    }
+
     /*
      * priviledge method: start()
      *
@@ -120,6 +143,7 @@ function Server() {
 
                     // Sends to everyone connected to server except the client
                     broadcast({type:"message", action: "quit", pid: nextPID, content: " There is now " + count + " players."});
+                    console.log("disconnected");
                 });
 
                 // When the client send something to the server.
@@ -132,15 +156,30 @@ function Server() {
                         // no corresponding player.  don't do anything.
                         return;
                     } 
+
                     switch (message.type) {
                         // one of the player moves the mouse.
                         case "move":
+                            console.log(p.pid + "moved")
+                            switch message.x:
+                                case 1:
+                                    p.fighter.moveOneStepRight();
+                                    break;
+                                case -1:
+                                    p.fighter.moveOneStepLeft();
+                                    break;
+                                default:
+                                    console.log("steady" + message.type);
+                            switch message.y:
+                                case 1::
+                                    p.fighter.moveOneStepUp();
+                                    break;
+                                case -1:
+                                    p.fighter.moveOneStepDown();
+                                    break;
+                                default:
+                                    console.log("steady" + message.type);
                             break;
-                            
-                        // one of the player moves the mouse.
-                        case "accelerate":
-                            break;
-
                         default:
                             console.log("Unhandled " + message.type);
                     }
@@ -164,6 +203,8 @@ function Server() {
             console.log("Server running on http://0.0.0.0:" + 3333 + "\n")
             console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
                         "browser to start the game")
+            gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
+
         } catch (e) {
             console.log("Cannot listen to " + 3333);
             console.log("Error: " + e);
