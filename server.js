@@ -28,7 +28,8 @@ function Server() {
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
     var players;      // Associative array for players, indexed via socket ID
-    var p1, p2;       // Player 1 and 2.
+    var positions = [[Setting.WIDTH/4, Setting.HEIGHT.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
+        [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
     /*
      * private method: broadcast(msg)
      *
@@ -73,16 +74,22 @@ function Server() {
 
     var newPlayer = function (conn) {
 
-        count++;
         // Send message to new player (the current client)
+        // Create player object and insert into players with key = conn.id
+        xx = positions[count][0];
+        yy = positions[count][1];
+        direction = count < 2 ? 1 : -1;
+        players[conn.id] = new Player(conn.id, conn.id, xx, yy);
+        sockets[conn.id] = conn;
+
         unicast(conn, {
             type: "newPlayer",
             pid:conn.id
+            x: xx,
+            y: yy,
+            direction: direction
         });
-        // Create player object and insert into players with key = conn.id
-        players[conn.id] = new Player(conn.id, conn.id, 300);
-        sockets[conn.id] = conn;
-
+        count++;
         // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 

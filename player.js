@@ -1,4 +1,4 @@
-function Player(sid, pid, yPos) {
+function Player(sid, pid, xPos, yPos) {
     // Public variables
     this.sid;   // Socket id. Used to uniquely identify players via 
                 // the socket they are connected from
@@ -10,7 +10,7 @@ function Player(sid, pid, yPos) {
     this.sid = sid;
     this.pid = pid;
     this.lastUpdated = new Date().getTime();
-    this.fighter = new Fighter(100, 100, 0);
+    this.fighter = new Fighter(xPos, yPos, 0);
 
     /*
      * priviledge method: getDelay
