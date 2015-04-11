@@ -56,6 +56,8 @@ Fighter.prototype.move = function(newx,newy){
 		this.y = Setting.HEIGHT-Fighter.HEIGHT;
 	else 
 		this.y = newy;
+
+	console.log("x:" + this.x + " y:" + this.y);
 }
 
 /*
