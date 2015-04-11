@@ -15,11 +15,11 @@ function FighterClient(){
     var score = 0;
     var scoreText;
     var currentWeapon = 0 ;
-    var Weapon = {};
-    var weapons = [];
+    var players = [];
     var serverMsg;
     var hasPlayed = false;
     var game ;
+    var pid;
     /*
      * private method: showMessage(location, msg)
      *
@@ -77,11 +77,13 @@ function FighterClient(){
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
-                    case "message":
-                        appendMessage("serverMsg", message.content);
+                    case "newPlayer":
+                        pid = message.pid;
                         break;
-                    case "update": 
-                        serverMsg = message;
+                    case "update":
+                        if(pid!= undefined && message.pid === pid){
+                            serverMsg = message;
+                        }
                         break;
                     case "updateVelocity": 
                         var t = message.timestamp;
@@ -208,7 +210,7 @@ function FighterClient(){
 
     function update() {
         if(serverMsg != undefined){
-            console.log(serverMsg);
+            //console.log(serverMsg);
             player.body.x = serverMsg.x;
             player.body.y = serverMsg.y;
         }
@@ -223,10 +225,7 @@ function FighterClient(){
         
         if(cursors.up.isDown){
             sendToServer({type:"move", y:-1});
-            // (player.body.y >= 100)
-            // {
             //     player.body.y -= 1;
-            // }
         }else if(cursors.down.isDown){
             //player.body.y += 1;
             sendToServer({type:"move",y:+1});
@@ -263,8 +262,9 @@ function FighterClient(){
                 player.animations.play('rightWalk');
             }
         }else if (game.input.pointer1.isDown){
+            sendToServer({type:"move",x:1});
             player.animations.play('rightWalk');
-            player.body.velocity.x = 150;
+            //player.body.velocity.x = 150;
         }
         else{
             //  Stand still
@@ -339,7 +339,6 @@ function FighterClient(){
     this.start = function (){
         initNetwork();
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-
     }
 
     // This will auto run after this script is loaded

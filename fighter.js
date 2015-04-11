@@ -57,7 +57,6 @@ Fighter.prototype.move = function(newx,newy){
 	else 
 		this.y = newy;
 
-	console.log("x:" + this.x + " y:" + this.y);
 }
 
 /*

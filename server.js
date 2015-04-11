@@ -75,20 +75,19 @@ function Server() {
 
         count++;
         // Send message to new player (the current client)
-        unicast(conn, {type: "message", content:"You are Player " + nextPID});
-        console.log("pid: "+nextPID);
+        unicast(conn, {
+            type: "newPlayer",
+            pid:conn.id
+        });
         // Create player object and insert into players with key = conn.id
-        players[conn.id] = new Player(conn.id, nextPID, 300);
-        sockets[nextPID] = conn;
-        console.log("hehe" + conn.id);
+        players[conn.id] = new Player(conn.id, conn.id, 300);
+        sockets[conn.id] = conn;
 
         // Updates the nextPID to issue (flip-flop between 1 and 2)
-        nextPID++;
-    }
+    };
 
     var gameLoop = function () {
         // Check if ball is moving
-
             var id;
             for (id in players){
                 var p = players[id];
@@ -104,9 +103,9 @@ function Server() {
                     y: y,
                     pid: p.pid,
                     status: p.status
+                };
+                broadcast(states);
             }
-            broadcast(states);
-        }
     }
 
     /*
