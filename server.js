@@ -72,18 +72,18 @@ function Server() {
     }
 
     var newPlayer = function (conn) {
-        count ++;
 
+        count++;
         // Send message to new player (the current client)
         unicast(conn, {type: "message", content:"You are Player " + nextPID});
-
+        console.log("pid: "+nextPID);
         // Create player object and insert into players with key = conn.id
         players[conn.id] = new Player(conn.id, nextPID, 300);
         sockets[nextPID] = conn;
         console.log("hehe" + conn.id);
 
         // Updates the nextPID to issue (flip-flop between 1 and 2)
-        nextPID = count
+        nextPID++;
     }
 
     var gameLoop = function () {
@@ -104,8 +104,8 @@ function Server() {
                     py: by,
                     pid: p.pid,
                     state: p.status
-            };
-            broadcast(states)
+            }
+            broadcast(states);
         }
     }
 
@@ -121,15 +121,17 @@ function Server() {
             var express = require('express');
             var http = require('http');
             var sockjs = require('sockjs');
-            var sock = sockjs.createServer();
-
+            var sockjs_opts = {sockjs_url: "http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"};
+            var sock = sockjs.createServer(sockjs_opts);
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
                 // Sends to client
                 broadcast({type:"message", content:"There is now " + count + " players"});
                 newPlayer(conn);
-                gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
+                if (gameInterval == undefined){
+                    gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
+                }
 
                 // When the client closes the connection to the server/closes the window
                 conn.on('close', function () {
