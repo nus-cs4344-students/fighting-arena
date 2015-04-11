@@ -15,11 +15,14 @@ function FighterClient(){
     var score = 0;
     var scoreText;
     var currentWeapon = 0 ;
-    var players = [];
+    var players = {};
     var serverMsg;
     var hasPlayed = false;
     var game ;
     var pid;
+    var xOfPlayers = {};
+    var yOfPlayers = {};
+    var directionOfPlayers = {};
     /*
      * private method: showMessage(location, msg)
      *
@@ -79,10 +82,17 @@ function FighterClient(){
                 switch (message.type) {
                     case "newPlayer":
                         pid = message.pid;
+                        var initX = message.x;
+                        var initY = message.y;
+                        var direction = message.direction;
+                        createPlayer(pid,initX,initY,direction);
                         break;
                     case "update":
-                        if(pid!= undefined && message.pid === pid){
-                            serverMsg = message;
+                        if(players[message.pid]===undefined){
+                            createPlayer(pid);
+                        }else{
+                            xOfPlayers[pid] = message.x;
+                            yOfPlayers[pid] = message.y;
                         }
                         break;
                     case "updateVelocity": 
@@ -142,30 +152,7 @@ function FighterClient(){
         // add sky 
         game.add.sprite(0, 0, 'sky');
 
-        // The player and its settings
-        player = game.add.sprite(32, game.world.height - 150, 'louis');
-        opponent = game.add.sprite(game.world.width-600, game.world.height - 150, 'louis');
-
-        opponent.scale.setTo(2,2);
-        player.scale.setTo(2,2);
-        opponent.frame = 9;
-        //  enable physics on player
-        game.physics.arcade.enable(player);
-        game.physics.arcade.enable(opponent);
-
-        //  add physics attributes to player
-        player.body.collideWorldBounds = true;
-        opponent.body.collideWorldBounds = true;
-
-
-        //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
-        player.animations.add('rightWalk', [13,14,15,16], 10, true);
-        player.animations.add('leftWalk', [7,6,5,4,3], 10, true);
-        player.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
-        player.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
         
-        opponent.animations.add('leftHitted',[62,61,60,59,58],5,true);
-
         //  Finally some stars to collect
         stars = game.add.group();
 
@@ -208,20 +195,46 @@ function FighterClient(){
         //    changeKey.onDown.add(nextWeapon, this);
     }
 
-    function update() {
-        if(serverMsg != undefined){
-            //console.log(serverMsg);
-            player.body.x = serverMsg.x;
-            player.body.y = serverMsg.y;
-        }
+    function createPlayer(pid,x,y,direction) {
+        // The player and its settings
+        newPlayer = game.add.sprite(x, y, 'louis');
 
+        newPlayer.scale.setTo(2,2);
+        //  enable physics on player
+        game.physics.arcade.enable(newPlayer);
+
+        //  add physics attributes to player
+        newPlayer.body.collideWorldBounds = true;
+
+        //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
+        newPlayer.animations.add('rightWalk', [13,14,15,16], 10, true);
+        newPlayer.animations.add('leftWalk', [7,6,5,4,3], 10, true);
+        newPlayer.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
+        newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
+        players[pid] = newPlayer;
+        directionOfPlayers[pid] = direction;
+    }
+
+    function update() {
+
+        for(var id in players){
+            players[id].body.x = xOfPlayers[id];
+            players[id].body.y = yOfPlayers[id];
+            if(directionOfPlayers[id]==-1){
+                players[id].frame = 9;
+            }else{
+                players[id].frame = 10;
+            }
+            if(id===pid){
+                player = players[id];
+            }
+        }
         // game.physics.arcade.collide(player,opponent);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
         game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
         game.physics.arcade.overlap(player, stars, collectStar, null, this);
         //  Reset the players velocity (movement)
-        player.body.velocity.x = 0;
         
         if(cursors.up.isDown){
             sendToServer({type:"move", y:-1});
