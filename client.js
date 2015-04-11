@@ -81,16 +81,7 @@ function FighterClient(){
                         appendMessage("serverMsg", message.content);
                         break;
                     case "update": 
-                        var t = message.timestamp;
-                        if (t < lastUpdatePaddleAt)
-                            break;
-                        player.x = message.myPlayerX;
-                        player.y = meesage.myPlayerY;
-
-                        lastUpdatePaddleAt = t;
-                        myPaddle.y = message.myPaddleY;
-                        opponentPaddle.x = message.opponentPaddleX;
-                        opponentPaddle.y = message.opponentPaddleY;
+                        console.log(message);
                         break;
                     case "updateVelocity": 
                         var t = message.timestamp;
@@ -359,7 +350,7 @@ function FighterClient(){
 
     this.start = function (){
         initNetwork();
-        game = new Phaser.Game(1080, 1320, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
     }
 

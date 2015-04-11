@@ -17,6 +17,7 @@
 var LIB_PATH = "./";
 require(LIB_PATH + 'setting.js');
 require(LIB_PATH + 'player.js');
+require(LIB_PATH + 'fighter.js');
 
 function Server() {
     // Private Variables
@@ -79,6 +80,7 @@ function Server() {
         // Create player object and insert into players with key = conn.id
         players[conn.id] = new Player(conn.id, nextPID, 300);
         sockets[nextPID] = conn;
+        console.log("hehe" + conn.id);
 
         // Updates the nextPID to issue (flip-flop between 1 and 2)
         nextPID = count
@@ -87,20 +89,21 @@ function Server() {
     var gameLoop = function () {
         // Check if ball is moving
 
-            for (p in players){
-            // Update on player side
-
-            var bx = p.fighter.x;
-            var by = p.fighter.y;
-            var date = new Date();
-            var currentTime = date.getTime();
-            var states = { 
-                type: "update",
-                timestamp: currentTime,
-                px: bx,
-                py: by,
-                pid: p.pid,
-                state: p.status
+            var id;
+            for (id in players){
+                var p = players[id];
+                // Update on player side
+                var bx = p.fighter.x;
+                var by = p.fighter.y;
+                var date = new Date();
+                var currentTime = date.getTime();
+                var states = { 
+                    type: "update",
+                    timestamp: currentTime,
+                    px: bx,
+                    py: by,
+                    pid: p.pid,
+                    state: p.status
             };
             broadcast(states)
         }
@@ -126,6 +129,7 @@ function Server() {
                 // Sends to client
                 broadcast({type:"message", content:"There is now " + count + " players"});
                 newPlayer(conn);
+                gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
 
                 // When the client closes the connection to the server/closes the window
                 conn.on('close', function () {
@@ -160,25 +164,16 @@ function Server() {
                     switch (message.type) {
                         // one of the player moves the mouse.
                         case "move":
-                            console.log(p.pid + "moved")
-                            switch message.x:
-                                case 1:
-                                    p.fighter.moveOneStepRight();
-                                    break;
-                                case -1:
-                                    p.fighter.moveOneStepLeft();
-                                    break;
-                                default:
-                                    console.log("steady" + message.type);
-                            switch message.y:
-                                case 1::
-                                    p.fighter.moveOneStepUp();
-                                    break;
-                                case -1:
-                                    p.fighter.moveOneStepDown();
-                                    break;
-                                default:
-                                    console.log("steady" + message.type);
+                            if (message.x == -1){
+                               p.fighter.moveOneStepLeft();
+                            } else if(message.x == 1){
+                               p.fighter.moveOneStepRight();
+                            }
+                            if (message.y == -1){
+                               p.fighter.moveOneStepUp();
+                            } else if (message.y == 1){
+                               p.fighter.moveOneStepDown();
+                            }
                             break;
                         default:
                             console.log("Unhandled " + message.type);
@@ -198,12 +193,11 @@ function Server() {
             var app = express();
             var httpServer = http.createServer(app);
             sock.installHandlers(httpServer, {prefix:'/fighter'});
-            httpServer.listen(3333, 'localhost');
+            httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
             console.log("Server running on http://0.0.0.0:" + 3333 + "\n")
             console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
                         "browser to start the game")
-            gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
 
         } catch (e) {
             console.log("Cannot listen to " + 3333);
