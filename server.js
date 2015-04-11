@@ -15,6 +15,7 @@
 "use strict"; 
 
 var LIB_PATH = "./";
+require(LIB_PATH + 'setting.js');
 
 function Server() {
     // Private Variables
@@ -132,25 +133,14 @@ function Server() {
                         return;
                     } 
                     switch (message.type) {
-                        // one of the player starts the game.
-                        case "start": 
-                            startGame();
-                            break;
-
                         // one of the player moves the mouse.
                         case "move":
-                            setTimeout(movePaddle, p.getDelay(), conn.id, message.x, message.timestamp);
                             break;
                             
                         // one of the player moves the mouse.
                         case "accelerate":
-                            setTimeout(acceleratePaddle, p.getDelay(), conn.id, message.vx, message.timestamp);
                             break;
 
-                        // one of the player change the delay
-                        case "delay":
-                            players[conn.id].delay = message.delay;
-                            break;
                         default:
                             console.log("Unhandled " + message.type);
                     }
@@ -168,11 +158,11 @@ function Server() {
             // for connection
             var app = express();
             var httpServer = http.createServer(app);
-            sock.installHandlers(httpServer, {prefix:'/fa'});
-            httpServer.listen(3333, '0.0.0.0');
+            sock.installHandlers(httpServer, {prefix:'/fighter'});
+            httpServer.listen(3333, 'localhost');
             app.use(express.static(__dirname));
             console.log("Server running on http://0.0.0.0:" + 3333 + "\n")
-            console.log("Visit http://0.0.0.0:" + 3333 + "/fighter.html in your " + 
+            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
                         "browser to start the game")
         } catch (e) {
             console.log("Cannot listen to " + 3333);

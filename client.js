@@ -73,13 +73,13 @@ function FighterClient(){
     function initNetwork() {
         // Attempts to connect to game server
         try {
-            socket = new SockJS("http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT + "/fighter");
+            socket = new SockJS("http://" + Setting.SERVER_NAME + ":" + Setting.PORT + "/fighter");
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
                     case "message":
-                    appendMessage("serverMsg", message.content);
-                    break;
+                        appendMessage("serverMsg", message.content);
+                        break;
                     case "update": 
                         var t = message.timestamp;
                         if (t < lastUpdatePaddleAt)
@@ -139,10 +139,6 @@ function FighterClient(){
         //game.load.spritesheet('louis','assets/louis.png',frameWidth, frameHeight, -1,1,0);
         game.load.spritesheet('louis','assets/characters/louis_lowres.png',32, 32.5, -1,0.5,0);
 
-        for (var i = 1; i <= 11; i++)
-        {
-            game.load.image('bullet' + i, 'assets/bullet' + i + '.png');
-        }
     }
 
     function create() {
@@ -223,7 +219,7 @@ function FighterClient(){
     function update() {
 
 
-        //game.physics.arcade.collide(player,opponent);
+        // game.physics.arcade.collide(player,opponent);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
         game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
@@ -246,17 +242,19 @@ function FighterClient(){
         {
             //  Move to the left
             player.body.velocity.x = -20;
+
             if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
                 player.animations.play('leftHit');
                 sendToServer({type:"hit",status:-1});
                 //hit -1 means hit from left side
                 playerStatus = 1;
-            }else{
+            } else{
                 player.body.velocity.x = -150;
                 player.animations.play('leftWalk');
                 sendToServer({type:"move",x:-1});
             }
         }
+        
         else if (cursors.right.isDown)
         {
             //  Move to the right
