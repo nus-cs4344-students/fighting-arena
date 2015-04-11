@@ -68,6 +68,20 @@ function Server() {
         }
     }
 
+    var newPlayer = function (conn) {
+        count ++;
+
+        // Send message to new player (the current client)
+        unicast(conn, {type: "message", content:"You are Player " + nextPID});
+
+        // Create player object and insert into players with key = conn.id
+        players[conn.id] = new Player(conn.id, nextPID, 300);
+        sockets[nextPID] = conn;
+
+        // Updates the nextPID to issue (flip-flop between 1 and 2)
+        nextPID = count
+    }
+
     /*
      * priviledge method: start()
      *
@@ -81,6 +95,67 @@ function Server() {
             var http = require('http');
             var sockjs = require('sockjs');
             var sock = sockjs.createServer();
+
+            // Upon connection established from a client socket
+            sock.on('connection', function (conn) {
+                console.log("connected");
+                // Sends to client
+                broadcast({type:"message", content:"There is now " + count + " players"});
+                newPlayer(conn);
+
+                // When the client closes the connection to the server/closes the window
+                conn.on('close', function () {
+                    // Stop game if it's playing
+                    reset();
+
+                    // Decrease player counter
+                    count--;
+
+                    // Set nextPID to quitting player's PID
+                    nextPID = players[conn.id].pid;
+
+                    // Remove player who wants to quit/closed the window
+                    delete players[conn.id];
+
+                    // Sends to everyone connected to server except the client
+                    broadcast({type:"message", action: "quit", pid: nextPID, content: " There is now " + count + " players."});
+                });
+
+                // When the client send something to the server.
+                conn.on('data', function (data) {
+                    var message = JSON.parse(data)
+                    var p = players[conn.id]
+
+                    if (p === undefined) {
+                        // we received data from a connection with
+                        // no corresponding player.  don't do anything.
+                        return;
+                    } 
+                    switch (message.type) {
+                        // one of the player starts the game.
+                        case "start": 
+                            startGame();
+                            break;
+
+                        // one of the player moves the mouse.
+                        case "move":
+                            setTimeout(movePaddle, p.getDelay(), conn.id, message.x, message.timestamp);
+                            break;
+                            
+                        // one of the player moves the mouse.
+                        case "accelerate":
+                            setTimeout(acceleratePaddle, p.getDelay(), conn.id, message.vx, message.timestamp);
+                            break;
+
+                        // one of the player change the delay
+                        case "delay":
+                            players[conn.id].delay = message.delay;
+                            break;
+                        default:
+                            console.log("Unhandled " + message.type);
+                    }
+                }); // conn.on("data"
+            }); // socket.on("connection"
 
             // reinitialize 
             count = 0;
