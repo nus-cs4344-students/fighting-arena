@@ -23,6 +23,9 @@ function FighterClient(){
     var numOfPlayers = 0;
     var myPID;
     var injuryRecovered = false;
+    var hitpointSprite = [];
+    var fullHP = 100;
+
     /*
      * private method: showMessage(location, msg)
      *
@@ -156,6 +159,7 @@ function FighterClient(){
         //game.load.image('sky', 'assets/sky.png');
         game.load.image('ground', 'assets/platform.png');
         game.load.image('star', 'assets/star.png');
+        game.load.image('hitpoint', 'assets/hitpoint.png');
         game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
         //-1 is for frameMax 5 is for margin, 0 for spacing
         //game.load.spritesheet('louis','assets/louis.png',frameWidth, frameHeight, -1,1,0);
@@ -174,13 +178,18 @@ function FighterClient(){
         [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
         for(var i=0;i<4;i++){
             var newPlayer = game.add.sprite(positions[i][0], positions[i][1], 'louis');
+            var newHp = game.add.sprite(positions[i][0], positions[i][1], 'hitpoint');
 
             newPlayer.scale.setTo(2,2);
+            newHp.scale.setTo(0.4,0.4);
+
             //  enable physics on player
             game.physics.arcade.enable(newPlayer);
+            game.physics.arcade.enable(newHp);
 
             //  add physics attributes to player
             newPlayer.body.collideWorldBounds = true;
+            newHp.body.collideWorldBounds = true;
 
             //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
             newPlayer.animations.add('rightWalk', [13,14,15,16], 10, true);
@@ -191,8 +200,10 @@ function FighterClient(){
             newPlayer.animations.add('leftHitted',[62,61,60,59,58,58,58,57,56,56,56,56,56],8,false);
             newPlayer.frame = 9;
             players[i] = newPlayer;
+            hitpointSprite[i] = newHp;
             fighters[i] = new Fighter(positions[i][0], positions[i][1], 0);
             newPlayer.visible = false;
+            newHp.visible = false;
         }
         //  Finally some stars to collect
         stars = game.add.group();
@@ -263,12 +274,17 @@ function FighterClient(){
             var direction = fighters[i].facingDirection;
             var isHitting = fighters[i].isHitting;
             var isInjured = fighters[i].isInjured;
+            var hp = fighters[i].hp;
+            var healthBar = hitpointSprite[i];
+            
             //console.log(fighters[i].hp);
             //console.log(fighters[i].isInjured);
             //console.log(vx+"vy:"+vy);
             console.log(isInjured);
             if(vx!==undefined && vy!==undefined){
                 player.visible = true;
+                healthBar.visible = true;
+
                 if(isInjured){
                     if(direction==="left"){
                         player.animations.play('leftHitted');
@@ -292,6 +308,12 @@ function FighterClient(){
                         player.frame = direction==="left"?9:10;
                     }
                 }
+
+                // update position and size of health bar
+                healthBar.body.velocity.x = vx;
+                healthBar.body.velocity.y = vy;
+                healthBar.scale.setTo(0.4 * hp / fullHP, 0.4);
+
                 player.body.velocity.x = vx;
                 player.body.velocity.y = vy;
             }
