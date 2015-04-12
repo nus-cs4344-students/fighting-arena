@@ -121,7 +121,7 @@ function Server() {
                     vx: vx,
                     vy: vy,
                     pid: p.pid,
-                    hp: p.hp,
+                    hp: p.fighter.hp,
                     status: p.status,
                     injuryStatus: p.fighter.isInjured,
                     isHitting: p.fighter.isHitting,
