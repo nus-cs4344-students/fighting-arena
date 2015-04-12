@@ -208,10 +208,8 @@ function Server() {
                             if(p.fighter.isHitting){
                                 for(id in players){
                                     var opponent = players[id];
-                                    if(id != conn.id){
+                                    if(id != conn.id && !p.fighter.isInjured){
                                         if(p.fighter.facingDirection == 'right'){
-                                            console.log(p.fighter.x + ' ' + opponent.fighter.x);
-                                            console.log(p.fighter.y + ' ' + opponent.fighter.y);
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             console.log(tOFRight);
                                             var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
@@ -227,8 +225,6 @@ function Server() {
                                             }
                                         }
                                         else if(p.fighter.facingDirection == 'left'){
-                                            console.log(p.fighter.x + ' ' + opponent.fighter.x);
-                                            console.log(p.fighter.y + ' ' + opponent.fighter.y);
                                             if(p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
                                                 && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
