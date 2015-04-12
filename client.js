@@ -26,6 +26,11 @@ function FighterClient(){
     var hitpointSprite = [];
     var fullHP = 100;
     var hitpointBarScale = 0.35;
+    var isTouchingHit = false;
+    var isTouchingLeft = false;
+    var isTouchingRight = false;
+    var isTouchingUp = false;
+    var isTouchingDown = false;
 
     /*
      * private method: showMessage(location, msg)
@@ -37,6 +42,7 @@ function FighterClient(){
      * The new message replaces any existing message
      * being shown.
      */
+
     function showMessage(location, msg) {
         document.getElementById(location).innerHTML = msg; 
     }
@@ -71,6 +77,59 @@ function FighterClient(){
         socket.send(JSON.stringify(msg));
     }
 
+    function addController() {
+        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+            GameController.init({
+                left: {
+                    type: 'joystick',
+                    joystick: {
+                          touchEnd: function() {
+                            isTouchingUp = false;
+                            isTouchingDown = false;
+                            isTouchingRight = false;
+                            isTouchingLeft = false;
+                          },
+                          touchMove: function( details ) {
+                            if (details.dx > 0) {
+                                isTouchingLeft = false;
+                                isTouchingRight = true;
+                            } else if(details.dx < 0){
+                                isTouchingLeft = true;
+                                isTouchingRight = false;
+                            }
+                            if (details.dy > 0){
+                                isTouchingUp = true;
+                                isTouchingDown = false;
+                            } else if (details.dy < 0){
+                                isTouchingUp = false;
+                                isTouchingDown = true;
+                            }
+                            // console.log( details.dy );
+                            // console.log( details.max );
+                            // console.log( details.normalizedX );
+                            // console.log( details.normalizedY );
+                          }
+                        }
+                },
+                right: {
+                    position: {
+                        right: '5%'
+                    },
+                    type: 'buttons',
+                    buttons: [
+                    {
+                        label: 'Hit', fontsize: 13, touchStart: function() {
+                            isTouchingHit = true;
+                        }, touchEnd: function(){
+                            isTouchingHit = false;
+                        }
+                    },
+                    false, false, false
+                    ]
+                }
+            });
+        }
+    }
     /*
      * private method: initNetwork(msg)
      *
@@ -80,6 +139,9 @@ function FighterClient(){
     function initNetwork() {
         // Attempts to connect to game server
         try {
+
+            $("#warning").hide();
+            game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
             socket = new SockJS("http://" + Setting.SERVER_NAME + ":" + Setting.PORT + "/fighter");
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
@@ -122,7 +184,7 @@ function FighterClient(){
                         var t = message.timestamp;
                         if (t < lastUpdateVelocityAt)
                             break;
-                        var distance = playArea.height - Ball.HEIGHT - 2* Paddle.HEIGHT;
+                        var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
                         // var real_distance = distance+100;
                         var real_distance = distance + Math.abs(message.ballVY * delay/Fighter.FRAME_RATE);
                         var coef = real_distance/distance;
@@ -142,7 +204,7 @@ function FighterClient(){
                         opponentPaddle.reset();
                         break;
                     default: 
-                    appendMessage("serverMsg", "unhandled meesage type " + message.type);
+                        appendMessage("serverMsg", "unhandled meesage type " + message.type);
                 }
             }
         } catch (e) {
@@ -172,6 +234,17 @@ function FighterClient(){
 
         // phaser physics world 
         game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+ 
+        //have the game centered horizontally
+     
+        this.scale.pageAlignHorizontally = true;
+     
+        this.scale.pageAlignVertically = true;
+     
+        //screen size will be set automatically
+     
+        this.scale.setScreenSize(true);
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
@@ -246,6 +319,7 @@ function FighterClient(){
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
         var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
         //    changeKey.onDown.add(nextWeapon, this);
+        addController();
     }
 
     function createPlayer(pid,x,y,direction) {
@@ -340,19 +414,19 @@ function FighterClient(){
                 injuryRecovered = false;
             }
             var facingDirection = myFighter.facingDirection;
-            if(cursors.up.isDown){
+            if(cursors.up.isDown || isTouchingUp){
                 vy = -150;
-            }else if(cursors.down.isDown){
+            }else if(cursors.down.isDown || isTouchingDown){
                 vy = 150;
             }
-            if (cursors.left.isDown){
+            if (cursors.left.isDown || isTouchingLeft){
                 vx = -150;
                 facingDirection = "left";
-            }else if (cursors.right.isDown){
+            }else if (cursors.right.isDown || isTouchingRight){
                 vx = 150;
                 facingDirection = "right";
             }
-            if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+            if(this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit){
                 isHitting= true;
             }
             sendToServer({
@@ -420,7 +494,6 @@ function FighterClient(){
     }
 
     this.start = function (){
-        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
         initNetwork();
     }
     // This will auto run after this script is loaded
@@ -430,9 +503,35 @@ function FighterClient(){
 }
 
 var client = new FighterClient();
-setTimeout(function() {client.start();}, 500);
-
-
-
-
-
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+    //if mobile, check device orientation
+    if (window.orientation === 90) {
+        setTimeout(function() {client.start();}, 500);
+            GameController.init({
+                left: {
+                    type: 'joystick'
+                },
+                right: {
+                    position: {
+                        right: '5%'
+                    },
+                    type: 'buttons',
+                    buttons: [
+                    {
+                        label: 'jump', fontsize: 13, touchstart: function() {
+                            // do something
+                        }
+                    },
+                    false, false, false
+                    ]
+                }
+            });
+    }
+    $(window).on("orientationchange",function(event){
+        if(window.orientation === 90){
+            setTimeout(function() {client.start();}, 500);
+        }
+    });
+} else { //starts otherwise
+    setTimeout(function() {client.start();}, 500);
+}
