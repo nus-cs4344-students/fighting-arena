@@ -399,12 +399,12 @@ function FighterClient(username){
                             player.animations.stop();
                             player.frame = direction==="left"?9:10;
                         }
-                    }
-                    healthBar.body.velocity.x = vx;
-                    healthBar.body.velocity.y = vy;
+                        healthBar.body.velocity.x = vx;
+                        healthBar.body.velocity.y = vy;
 
-                    player.body.velocity.x = vx;
-                    player.body.velocity.y = vy;
+                        player.body.velocity.x = vx;
+                        player.body.velocity.y = vy;
+                    }
                 }
                 if(hp>=0)
                     healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
