@@ -28,8 +28,6 @@ function Server() {
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
     var players;      // Associative array for players, indexed via socket ID
-    var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
-        [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
     /*
      * private method: broadcast(msg)
      *
@@ -150,7 +148,7 @@ function Server() {
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
-                if(count>20){
+                if(count>19){
                     unicast(conn,{type:"full",message:"There are already 20 players playing"});
                     return;
                 }

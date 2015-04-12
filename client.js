@@ -331,6 +331,8 @@ function FighterClient(username){
         var p = players[pid];
         p.body.x = x;
         p.body.y = y;
+        fighters[pid].x = x;
+        fighters[pid].y = y;
         fighters[pid].facingDirection = direction;
         p.visible = true;
         console.log("created player of "+pid);
@@ -352,6 +354,7 @@ function FighterClient(username){
     function renderGame(){
         //here is for rendering
         num_text.setText('# of players: '+ numOfPlayers);
+        console.log(players.length);
         for(var i=0;i<players.length;i++){
             var animaPlayed = false;
             var player = players[i];
