@@ -463,7 +463,12 @@ function FighterClient(username){
             if(this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit){
                 isHitting= true;
             }
+            var healthBar = hitpointSprite[myPID];
 
+            if(myPlayer.body.y<300 || healthBar.body.y<300){
+                myPlayer.body.y = 300;
+                healthBar.body.y = 300;
+            }
             if(myFighter.hp > 0){
                 sendToServer({
                     type:"move",
