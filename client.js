@@ -8,6 +8,7 @@ function FighterClient(username){
     var bullets;
     var fireRate = 100;
     var nextFire = 0;
+    var maxPlayers = 20;
     //var score = 0;
     //var scoreText;
     var currentWeapon = 0 ;
@@ -243,11 +244,12 @@ function FighterClient(username){
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
-        var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
-        [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
-        for(var i=0;i<4;i++){
-            var newPlayer = game.add.sprite(positions[i][0], positions[i][1], 'louis');
-            var newHp = game.add.sprite(positions[i][0], positions[i][1], 'hitpoint');
+        
+        for(var i=0;i<maxPlayers;i++){
+            randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
+            randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
+            var newPlayer = game.add.sprite(randomX, randomY, 'louis');
+            var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
 
             newPlayer.scale.setTo(2,2);
             newHp.scale.setTo(hitpointBarScale, hitpointBarScale);
@@ -270,7 +272,7 @@ function FighterClient(username){
             newPlayer.frame = 9;
             players[i] = newPlayer;
             hitpointSprite[i] = newHp;
-            fighters[i] = new Fighter(positions[i][0], positions[i][1], 0);
+            fighters[i] = new Fighter(randomX, randomY, 0);
             newPlayer.visible = false;
             newHp.visible = false;
             var tt = game.add.text(16, 16, '', { fontSize: '20px', fill: '#FFF' });

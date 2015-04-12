@@ -76,11 +76,11 @@ function Server() {
 
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
-        var xx = positions[count][0];
-        var yy = positions[count][1];
-        var direction = count<2 ? "left" :  "right";
+        var randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
+        var randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
+        var direction = count%2!=1 ? "left" :  "right";
 
-        players[conn.id] = new Player(conn.id, nextPID, xx, yy);
+        players[conn.id] = new Player(conn.id, nextPID, randomX, randomY);
         sockets[conn.id] = conn;
 
         unicast(conn,{type:"assign",pid:nextPID});
@@ -88,8 +88,8 @@ function Server() {
             type: "newPlayer",
             count: count,
             pid:nextPID,
-            x: xx,
-            y: yy,
+            x: randomX,
+            y: randomY,
             direction: direction,
         });
         //count actually has same function as nextPID;
@@ -150,8 +150,8 @@ function Server() {
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
-                if(count>3){
-                    unicast(conn,{type:"full",message:"There are already 4 players playing"});
+                if(count>20){
+                    unicast(conn,{type:"full",message:"There are already 20 players playing"});
                     return;
                 }
                 //create new player and brodcast it 
