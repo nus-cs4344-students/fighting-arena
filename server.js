@@ -78,11 +78,11 @@ function Server() {
         // Create player object and insert into players with key = conn.id
         var xx = positions[count][0];
         var yy = positions[count][1];
-        var direction = count<2 ? -1 :  1;
+        var direction = count<2 ? "left" :  "right";
 
         players[conn.id] = new Player(conn.id, nextPID, xx, yy);
         sockets[conn.id] = conn;
-        
+
         unicast(conn,{type:"assign",pid:nextPID});
         broadcast({
             type: "newPlayer",
@@ -106,15 +106,20 @@ function Server() {
             for (id in players){
                 var p = players[id];
                 // Update on player side
-                var x = p.fighter.x;
-                var y = p.fighter.y;
+                var xx = p.fighter.x;
+                var yy = p.fighter.y;
+                var vx = p.fighter.vx;
+                var vy = p.fighter.vy;
+                console.log("vx:"+vx+"vy:"+vy);
                 var date = new Date();
                 var currentTime = date.getTime();
                 var states = {
                     type: "update",
                     timestamp: currentTime,
-                    x: x,
-                    y: y,
+                    x:xx,
+                    y:yy,
+                    vx: vx,
+                    vy: vy,
                     pid: p.pid,
                     status: p.status
                 };
@@ -172,28 +177,20 @@ function Server() {
 
                 // When the client send something to the server.
                 conn.on('data', function (data) {
-                    var message = JSON.parse(data)
-                    var p = players[conn.id]
+                    var message = JSON.parse(data);
+                    var p = players[conn.id];
 
                     if (p === undefined) {
                         // we received data from a connection with
                         // no corresponding player.  don't do anything.
                         return;
-                    } 
+                    }
 
                     switch (message.type) {
                         // one of the player moves the mouse.
                         case "move":
-                            if (message.x == -1){
-                               p.fighter.moveOneStepLeft();
-                            } else if(message.x == 1){
-                               p.fighter.moveOneStepRight();
-                            }
-                            if (message.y == -1){
-                               p.fighter.moveOneStepUp();
-                            } else if (message.y == 1){
-                               p.fighter.moveOneStepDown();
-                            }
+                            p.fighter.vx = message.vx;
+                            p.fighter.vy = message.vy;
                             break;
                         default:
                             console.log("Unhandled " + message.type);

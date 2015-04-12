@@ -6,7 +6,7 @@ var Setting = {
 	WIDTH : 1280,				// width of fighter game window
 	PORT : 3333,				// port of fighter game
 	FRAME_RATE : 25,			// frame rate of fighter game
-	SERVER_NAME : "192.168.1.102"	// server name of fighter game
+	SERVER_NAME : "192.168.1.103"	// server name of fighter game
 	//SERVER_NAME : "172.28.179.28"	// server name of fighter game
 }
 

@@ -16,10 +16,11 @@ function FighterClient(){
     var serverMsg;
     var hasPlayed = false;
     var game ;
-    var xOfPlayers = {};
-    var yOfPlayers = {};
+    var vxOfPlayers = {};
+    var vyOfPlayers = {};
     var directions = [];
     var numOfPlayers = 0;
+    var myPID;
     /*
      * private method: showMessage(location, msg)
      *
@@ -92,14 +93,15 @@ function FighterClient(){
                         break;
                     case "assign":
                         player = players[message.pid];
+                        myPID = message.pid;
                         break;
                     case "update":
                         if(!(message.pid in players)){
                             //console.log("pid:"+message.pid);
                             createPlayer(message.pid,message.x,message.y,1);
                         }else{
-                            xOfPlayers[message.pid] = message.x;
-                            yOfPlayers[message.pid] = message.y;
+                            vxOfPlayers[message.pid] = message.vx;
+                            vyOfPlayers[message.pid] = message.vy;
                             //console.log("udpatedX:"+message.x+"updatedY:"+message.y);
                         }
                         break;
@@ -238,90 +240,51 @@ function FighterClient(){
         players[pid].visible = false;
     }
 
+    // function renderGame(serverMsg){
+
+    // }
+
     function update() {
         for(var i=0;i<players.length;i++){
-            if(xOfPlayers[i]!==undefined && yOfPlayers[i]!==undefined){
-                players[i].visible = true;
-                players[i].body.x = xOfPlayers[i];
-                players[i].body.y = yOfPlayers[i];
+            if(vxOfPlayers[i]!==undefined && vyOfPlayers[i]!==undefined){
+                //players[i].visible = true;
+                if(vxOfPlayers[i]>0){
+                    players[i].animations.play("rightWalk");
+                }else if(vxOfPlayers[i]<0){
+                    players[i].animations.play("leftWalk");
+                }else{
+                    players[i].animations.stop();
+                }
+                console.log("vx:"+vxOfPlayers[i]);
+                players[i].body.velocity.x = vxOfPlayers[i];
+                players[i].body.velocity.y = vyOfPlayers[i];
             }
         }
-
         // game.physics.arcade.collide(player,opponent);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
         //game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
         //game.physics.arcade.overlap(player, stars, collectStar, null, this);
         //  Reset the players velocity (movement)
+        var vx = 0;
+        var vy = 0;
         if(player !== undefined){
             if(cursors.up.isDown){
-                sendToServer({type:"move", y:-1});
-            //     player.body.y -= 1;
+                vy = -50;
             }else if(cursors.down.isDown){
-                //player.body.y += 1;
-                sendToServer({type:"move",y:+1});
+                vy = 50;
+            }else if (cursors.left.isDown){
+                vx = -150;
+            }else if (cursors.right.isDown){
+                vx = 150;
             }
-
-            if (cursors.left.isDown)
-            {
-                //  Move to the left
-                //player.body.velocity.x = -20;
-                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                    player.animations.play('leftHit');
-                    sendToServer({type:"hit",status:-1});
-                    //hit -1 means hit from left side
-                    playerStatus = 1;
-                }else{
-                    //player.body.velocity.x = -150;
-                    player.animations.play('leftWalk');
-                    sendToServer({type:"move",x:-1});
-                }
-            }
-            else if (cursors.right.isDown)
-            {
-                //  Move to the right
-                //player.body.velocity.x = 20;
-                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                    player.animations.play('rightHit');
-                    //1 means for 
-                    sendToServer({type:"hit",status:1});
-                    playerStatus = 1;
-                }else{
-                    //player.body.velocity.x = 150;
-                    sendToServer({type:"move",x:1});
-                    player.animations.play('rightWalk');
-                }
-            }else if (game.input.pointer1.isDown){
-                sendToServer({type:"move",x:1});
-                player.animations.play('rightWalk');
-                //player.body.velocity.x = 150;
-            }
-            else{
-                //  Stand still
-                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                    player.animations.play('rightHit');
-                        sendToServer({type:"hit",status:1});
-                        playerStatus = 1;
-                    }else{
-                        player.animations.stop();
-                        // if(directionOfPlayers[pid]===-1)
-                        //     player.frame = 10;
-                        // else
-                        //     player.frame = 9;
-                    }
-                }
-                
-                if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-                    fire();
-                }
-                
-                //  Allow the player to jump if they are touching the ground.
-                if (cursors.up.isDown && player.body.touching.down)
-                {
-                    player.body.velocity.y = -350;
-                }
         }
-        
+        sendToServer({
+            type:"move",
+            x:player.body.x,
+            y:player.body.y,
+            vx:vx,
+            vy:vy});
     }
 
     function fire () {
@@ -373,7 +336,7 @@ function FighterClient(){
     this.start = function (){
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
         initNetwork();
-    };
+    }
     // This will auto run after this script is loaded
 
     // Run Client. Give leeway of 0.5 second for libraries to load
