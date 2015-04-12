@@ -22,6 +22,7 @@ function FighterClient(){
     var directions = {};
     var numOfPlayers = 0;
     var myPID;
+    var injuryRecovered = false;
     /*
      * private method: showMessage(location, msg)
      *
@@ -103,10 +104,14 @@ function FighterClient(){
                             createPlayer(message.pid,message.x,message.y,1);
                         }else{
                             var id = message.pid;
+                            fighters[id].x = message.x;
+                            fighters[id].y = message.y;
                             fighters[id].vx = message.vx;
                             fighters[id].vy = message.vy;
                             fighters[id].facingDirection = message.facingDirection;
                             fighters[id].isHitting = message.isHitting;
+                            fighters[id].isInjured = message.injuryStatus;
+                            fighters[id].hp = message.hp;
                         }
                         break;
                     case "updateVelocity":
@@ -182,6 +187,8 @@ function FighterClient(){
             newPlayer.animations.add('leftWalk', [7,6,5,4,3], 10, true);
             newPlayer.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
             newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
+            newPlayer.animations.add('rightHitted',[63,64,65,66,67,67,67,68,69,69,69,69,69],8,false);
+            newPlayer.animations.add('leftHitted',[62,61,60,59,58,58,58,57,56,56,56,56,56],8,false);
             newPlayer.frame = 9;
             players[i] = newPlayer;
             fighters[i] = new Fighter(positions[i][0], positions[i][1], 0);
@@ -248,17 +255,28 @@ function FighterClient(){
     function renderGame(){
         //here is for rendering
         for(var i=0;i<players.length;i++){
+            var animaPlayed = false;
             var player = players[i];
-
+            var fighter = fighters[i];
             var vx = fighters[i].vx;
             var vy = fighters[i].vy;
             var direction = fighters[i].facingDirection;
             var isHitting = fighters[i].isHitting;
             var isInjured = fighters[i].isInjured;
-
+            //console.log(fighters[i].hp);
+            //console.log(fighters[i].isInjured);
+            //console.log(vx+"vy:"+vy);
+            console.log(isInjured);
             if(vx!==undefined && vy!==undefined){
                 player.visible = true;
-                if(isHitting){
+                if(isInjured){
+                    if(direction==="left"){
+                        player.animations.play('leftHitted');
+                    }else if(direction==="right"){
+                        player.animations.play('rightHitted');
+                    }
+                    setTimeout(function() {injuryRecovered=true;}, 1100);
+                }else if(isHitting){
                     if(direction==="left"){
                         player.animations.play('leftHit');
                     }else if(direction==="right"){
@@ -290,9 +308,14 @@ function FighterClient(){
         var vx = 0;
         var vy = 0;
         var isHitting = false;
+
         if(connectedToServer){
             var myPlayer = players[myPID];
             var myFighter = fighters[myPID];
+            if(injuryRecovered){
+                myFighter.isInjured = false;
+                injuryRecovered = false;
+            }
             var facingDirection = myFighter.facingDirection;
             if(cursors.up.isDown){
                 vy = -150;
@@ -316,8 +339,10 @@ function FighterClient(){
                 vx:vx,
                 vy:vy,
             });
+
             sendToServer({
                 type:"attack",
+                isInjured:myFighter.isInjured,
                 isHitting:isHitting,
                 facingDirection:facingDirection
             });

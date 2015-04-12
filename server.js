@@ -110,7 +110,7 @@ function Server() {
                 var yy = p.fighter.y;
                 var vx = p.fighter.vx;
                 var vy = p.fighter.vy;
-                console.log(p.fighter.isHitting+p.fighter.facingDirection);
+                //console.log(p.fighter.isHitting+p.fighter.facingDirection);
                 var date = new Date();
                 var currentTime = date.getTime();
                 var states = {
@@ -195,54 +195,54 @@ function Server() {
                         case "move":
                             p.fighter.vx = message.vx;
                             p.fighter.vy = message.vy;
+                            p.fighter.x = message.x;
+                            p.fighter.y = message.y;
                             break;
                         case "attack":
-                            console.log("receive an attack message");
-
+                            //console.log("receive an attack message");
+                            p.fighter.isInjured = message.isInjured;
                             p.fighter.isHitting = message.isHitting;
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
-
                             // determine whether have collision with other players
                             var id;
-
-                            for(id in players){
-                                var opponent = players[id];
-                                if(id != conn.id){
-                                    if(p.fighter.facingDirection == 'right'){
-                                        console.log(p.fighter.x + ' ' + opponent.fighter.x);
-                                        console.log(p.fighter.y + ' ' + opponent.fighter.y);
-
-                                        if(p.fighter.x <= opponent.fighter.x - 0.25 * Fighter.width
-                                            && p.fighter.x >= opponent.fighter.x - 1.8 * Fighter.width
-                                            && p.fighter.y <= opponent.fighter.y + 0.3 * Fighter.height
-                                            && p.fighter.y >= opponent.fighter.y - 0.3 * Fighter.height){
-                                            opponent.fighter.getHitted(10);
-                                            console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
-
-                                            if(opponent.fighter.facingDirection == 'right'){
+                            if(p.fighter.isHitting){
+                                for(id in players){
+                                    var opponent = players[id];
+                                    if(id != conn.id){
+                                        if(p.fighter.facingDirection == 'right'){
+                                            console.log(p.fighter.x + ' ' + opponent.fighter.x);
+                                            console.log(p.fighter.y + ' ' + opponent.fighter.y);
+                                            var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
+                                            console.log(tOFRight);
+                                            var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
+                                            console.log(tOFLeft);
+                                            var tOFTop = (opponent.fighter.y + 0.5 * Fighter.HEIGHT);
+                                            console.log(tOFTop);
+                                            var tOFBtm = (opponent.fighter.y - 0.5 * Fighter.HEIGHT);
+                                            console.log(tOFBtm);
+                                            if(p.fighter.x <= tOFRight && p.fighter.x >= tOFLeft && p.fighter.y <= tOFTop && p.fighter.y >= tOFBtm){
+                                                opponent.fighter.getHitted(10);
+                                                console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
                                             }
                                         }
-                                    }
-                                    
-                                    else if(p.fighter.facingDirection == 'left'){
-                                        console.log(p.fighter.x + ' ' + opponent.fighter.x);
-                                        console.log(p.fighter.y + ' ' + opponent.fighter.y);
-                                        if(p.fighter.x >= opponent.fighter.x + 0.25 * Fighter.width
-                                            && p.fighter.x <= opponent.fighter.x + 1.8 * Fighter.width
-                                            && p.fighter.y <= opponent.fighter.y + 0.3 * Fighter.height
-                                            && p.fighter.y >= opponent.fighter.y - 0.3 * Fighter.height){
-                                            //player.fighter.getHitted(HITPOINT_NORMAL);
-                                            console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
-                                            opponent.fighter.getHitted(10);
-
-                                            if(opponent.fighter.facingDirection == 'left'){
+                                        else if(p.fighter.facingDirection == 'left'){
+                                            console.log(p.fighter.x + ' ' + opponent.fighter.x);
+                                            console.log(p.fighter.y + ' ' + opponent.fighter.y);
+                                            if(p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
+                                                && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
+                                                && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
+                                                && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)){
+                                                //player.fighter.getHitted(HITPOINT_NORMAL);
+                                                console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
+                                                opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
                                             }
                                         }
                                     }
                                 }
                             }
+                   
                             break;
                         default:
                             console.log("Unhandled " + message.type);
