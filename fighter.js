@@ -19,11 +19,12 @@ function Fighter(xPos,yPos,status){
 	this.x;
 	this.y;
     this.vx;
-    this.vy; 
+    this.vy;
     this.hp;
     this.status; 
     this.isHitting;
     this.facingDirection;
+    this.isInjured;
 	// Constructor
 	var that = this; 
 	this.hp = 100;
@@ -31,6 +32,7 @@ function Fighter(xPos,yPos,status){
 	this.y = yPos;
     this.status = status;
     this.facingDirection = "right";
+    this.isInjured = false;
 }
 
 // Static variables

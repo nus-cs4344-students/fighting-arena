@@ -13,6 +13,7 @@ function FighterClient(){
     var player;
     var currentWeapon = 0 ;
     var players = [];
+    var fighters = [];
     var serverMsg;
     var hasPlayed = false;
     var game ;
@@ -183,6 +184,7 @@ function FighterClient(){
             newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
             newPlayer.frame = 9;
             players[i] = newPlayer;
+            fighters[i] = new Fighter(positions[i][0], positions[i][1], 0);
             newPlayer.visible = false;
         }
         //  Finally some stars to collect
@@ -265,7 +267,6 @@ function FighterClient(){
                         players[i].frame = directions[i]==="left"?9:10;
                     }
                 }
-                
                 players[i].body.velocity.x = vxOfPlayers[i];
                 players[i].body.velocity.y = vyOfPlayers[i];
             }
