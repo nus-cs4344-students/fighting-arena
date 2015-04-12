@@ -192,6 +192,10 @@ function Server() {
 
                     switch (message.type) {
                         // one of the player moves the mouse.
+                        case "newPlayer":
+                            var username = message.username;
+                            players[conn.id].username = username;
+                            break;
                         case "move":
                             p.fighter.vx = message.vx;
                             p.fighter.vy = message.vy;
@@ -238,7 +242,6 @@ function Server() {
                                     }
                                 }
                             }
-                   
                             break;
                         default:
                             console.log("Unhandled " + message.type);

@@ -208,11 +208,6 @@ function FighterClient(username){
                     default: 
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
                 }
-                
-                sendToServer({
-                    type: "newPlayer",
-                    name: myName
-                });
             }
         } catch (e) {
             console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
@@ -342,6 +337,10 @@ function FighterClient(username){
         console.log("created player of "+pid);
         console.log("local postion updated"+x+" "+" "+y);
         numOfPlayers++;
+        sendToServer({
+            type:"newPlayer",
+            username: myName
+        });
 
     }
 
