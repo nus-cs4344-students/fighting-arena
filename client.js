@@ -17,10 +17,6 @@ function FighterClient(username){
     var hasPlayed = false;
     var game ;
     var connectedToServer = false;
-    var vxOfPlayers = {};
-    var vyOfPlayers = {};
-    var hitStatus = {};
-    var directions = {};
     var numOfPlayers = 0;
     var myPID;
     var injuryRecovered = false;
@@ -141,9 +137,7 @@ function FighterClient(username){
     function initNetwork() {
         // Attempts to connect to game server
         try {
-
             $("#warning").hide();
-            game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
             socket = new SockJS("http://" + Setting.SERVER_NAME + ":" + Setting.PORT + "/fighter");
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
@@ -155,7 +149,6 @@ function FighterClient(username){
                         var initY = message.y;
                         var direction = message.direction;
                         createPlayer(pid,initX,initY,direction);
-                        //console.log("initX:"+message.x+"initY:"+message.y);
                         break;
                     //player disconnected
                     case "disconnected":
@@ -167,20 +160,15 @@ function FighterClient(username){
                         myPID = message.pid;
                         break;
                     case "update":
-                        if(!(message.pid in players)){
-                            //console.log("pid:"+message.pid);
-                            createPlayer(message.pid,message.x,message.y,1);
-                        }else{
-                            var id = message.pid;
-                            fighters[id].x = message.x;
-                            fighters[id].y = message.y;
-                            fighters[id].vx = message.vx;
-                            fighters[id].vy = message.vy;
-                            fighters[id].facingDirection = message.facingDirection;
-                            fighters[id].isHitting = message.isHitting;
-                            fighters[id].isInjured = message.injuryStatus;
-                            fighters[id].hp = message.hp;
-                        }
+                        var id = message.pid;
+                        fighters[id].x = message.x;
+                        fighters[id].y = message.y;
+                        fighters[id].vx = message.vx;
+                        fighters[id].vy = message.vy;
+                        fighters[id].facingDirection = message.facingDirection;
+                        fighters[id].isHitting = message.isHitting;
+                        fighters[id].isInjured = message.injuryStatus;
+                        fighters[id].hp = message.hp;
                         break;
                     case "updateVelocity":
                         var t = message.timestamp;
@@ -365,6 +353,13 @@ function FighterClient(username){
             var hp = fighters[i].hp;
             var healthBar = hitpointSprite[i];
             
+            if(i!==myPID){
+                player.body.x = fighter.x;
+                player.body.y = fighter.y;
+                healthBar.body.x = fighter.x;
+                healthBar.body.y = fighter.y;
+            }
+
             //console.log(fighters[i].hp);
             //console.log(fighters[i].isInjured);
             //console.log(vx+"vy:"+vy);
@@ -519,8 +514,9 @@ function FighterClient(username){
     }
 
     this.start = function (){
-        initNetwork();
-    }
+        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
+        setTimeout(function() {initNetwork();},1000);
+    };
     // This will auto run after this script is loaded
 
     // Run Client. Give leeway of 0.5 second for libraries to load
