@@ -3,10 +3,6 @@
 
 function FighterClient(){
     var socket;         // socket used to connect to server 
-    var player;
-    var playerStatus = 0;
-    var opponentStatus = 0;
-    var opponent;
     var cursors;
     var stars;
     var bullets;
@@ -15,14 +11,13 @@ function FighterClient(){
     var score = 0;
     var scoreText;
     var currentWeapon = 0 ;
-    var players = {};
+    var players = [];
     var serverMsg;
     var hasPlayed = false;
     var game ;
-    var pid;
     var xOfPlayers = {};
     var yOfPlayers = {};
-    var directionOfPlayers = {};
+    var directions = [];
     /*
      * private method: showMessage(location, msg)
      *
@@ -80,22 +75,33 @@ function FighterClient(){
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
+                    //created player
                     case "newPlayer":
-                        pid = message.pid;
+                        var pid = message.pid;
                         var initX = message.x;
                         var initY = message.y;
                         var direction = message.direction;
                         createPlayer(pid,initX,initY,direction);
+                        //console.log("initX:"+message.x+"initY:"+message.y);
+                        break;
+                    //player disconnected
+                    case "disconnected":
+                        deletePlayer(message.pid);
+                        break;
+                    case "assign":
+                        player = players[message.pid];
                         break;
                     case "update":
-                        if(players[message.pid]===undefined){
-                            createPlayer(pid);
+                        if(!(message.pid in players)){
+                            //console.log("pid:"+message.pid);
+                            createPlayer(message.pid,message.x,message.y,1);
                         }else{
-                            xOfPlayers[pid] = message.x;
-                            yOfPlayers[pid] = message.y;
+                            xOfPlayers[message.pid] = message.x;
+                            yOfPlayers[message.pid] = message.y;
+                            //console.log("udpatedX:"+message.x+"updatedY:"+message.y);
                         }
                         break;
-                    case "updateVelocity": 
+                    case "updateVelocity":
                         var t = message.timestamp;
                         if (t < lastUpdateVelocityAt)
                             break;
@@ -113,7 +119,7 @@ function FighterClient(){
                         ball.x = message.ballX;
                         ball.y = message.ballY;
                         break;
-                    case "outOfBound": 
+                    case "outOfBound":
                         ball.reset();
                         myPaddle.reset();
                         opponentPaddle.reset();
@@ -151,8 +157,27 @@ function FighterClient(){
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
+        var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
+        [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
+        for(var i=0;i<4;i++){
+            var newPlayer = game.add.sprite(positions[i][0], positions[i][1], 'louis');
 
-        
+            newPlayer.scale.setTo(2,2);
+            //  enable physics on player
+            game.physics.arcade.enable(newPlayer);
+
+            //  add physics attributes to player
+            newPlayer.body.collideWorldBounds = true;
+
+            //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
+            newPlayer.animations.add('rightWalk', [13,14,15,16], 10, true);
+            newPlayer.animations.add('leftWalk', [7,6,5,4,3], 10, true);
+            newPlayer.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
+            newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
+            newPlayer.frame = 9;
+            players[i] = newPlayer;
+            newPlayer.visible = false;
+        }
         //  Finally some stars to collect
         stars = game.add.group();
 
@@ -160,10 +185,10 @@ function FighterClient(){
         stars.enableBody = true;
 
         //  Here we'll create 12 of them evenly spaced apart
-        for (var i = 0; i < 12; i++)
+        for (var j = 0; j < 12; j++)
         {
             //  Create a star inside of the 'stars' group
-            var star = stars.create(i * 70, 0, 'star');
+            var star = stars.create(j * 70, 0, 'star');
 
             //  Let gravity do its thing
             star.body.gravity.y = 300;
@@ -196,111 +221,108 @@ function FighterClient(){
     }
 
     function createPlayer(pid,x,y,direction) {
-        // The player and its settings
-        newPlayer = game.add.sprite(x, y, 'louis');
+        console.log(players);
+        var p = players[pid];
+        p.body.x = x;
+        p.body.y = y;
+        directions[pid] = direction;
+        p.visible = true;
+        console.log("created player of "+pid);
+        console.log("local postion updated"+x+" "+" "+y);
+    }
 
-        newPlayer.scale.setTo(2,2);
-        //  enable physics on player
-        game.physics.arcade.enable(newPlayer);
-
-        //  add physics attributes to player
-        newPlayer.body.collideWorldBounds = true;
-
-        //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
-        newPlayer.animations.add('rightWalk', [13,14,15,16], 10, true);
-        newPlayer.animations.add('leftWalk', [7,6,5,4,3], 10, true);
-        newPlayer.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
-        newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
-        players[pid] = newPlayer;
-        directionOfPlayers[pid] = direction;
+    function deletePlayer(pid){
+        console.log("deleted player of "+pid);
+        players[pid].visible = false;
     }
 
     function update() {
-
-        for(var id in players){
-            players[id].body.x = xOfPlayers[id];
-            players[id].body.y = yOfPlayers[id];
-            if(directionOfPlayers[id]==-1){
-                players[id].frame = 9;
-            }else{
-                players[id].frame = 10;
-            }
-            if(id===pid){
-                player = players[id];
+        for(var j=0;j<4;j++){
+            players[j].visible = false;
+        }
+        for(var i=0;i<players.length;i++){
+            if(xOfPlayers[i]!==undefined && yOfPlayers[i]!==undefined){
+                players[i].visible = true;
+                players[i].body.x = xOfPlayers[i];
+                players[i].body.y = yOfPlayers[i];
             }
         }
+
         // game.physics.arcade.collide(player,opponent);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
-        game.physics.arcade.overlap(player, stars, collectStar, null, this);
+        //game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
+        //game.physics.arcade.overlap(player, stars, collectStar, null, this);
         //  Reset the players velocity (movement)
-        
-        if(cursors.up.isDown){
-            sendToServer({type:"move", y:-1});
+        if(player !== undefined){
+            if(cursors.up.isDown){
+                sendToServer({type:"move", y:-1});
             //     player.body.y -= 1;
-        }else if(cursors.down.isDown){
-            //player.body.y += 1;
-            sendToServer({type:"move",y:+1});
-        }
-
-        if (cursors.left.isDown)
-        {
-            //  Move to the left
-            //player.body.velocity.x = -20;
-
-            if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                player.animations.play('leftHit');
-                sendToServer({type:"hit",status:-1});
-                //hit -1 means hit from left side
-                playerStatus = 1;
-            } else{
-                //player.body.velocity.x = -150;
-                player.animations.play('leftWalk');
-                sendToServer({type:"move",x:-1});
+            }else if(cursors.down.isDown){
+                //player.body.y += 1;
+                sendToServer({type:"move",y:+1});
             }
-        }
-        else if (cursors.right.isDown)
-        {
-            //  Move to the right
-            //player.body.velocity.x = 20;
-            if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                player.animations.play('rightHit');
-                //1 means for 
-                sendToServer({type:"hit",status:1});
-                playerStatus = 1;
-            }else{
-                //player.body.velocity.x = 150;
+
+            if (cursors.left.isDown)
+            {
+                //  Move to the left
+                //player.body.velocity.x = -20;
+                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+                    player.animations.play('leftHit');
+                    sendToServer({type:"hit",status:-1});
+                    //hit -1 means hit from left side
+                    playerStatus = 1;
+                }else{
+                    //player.body.velocity.x = -150;
+                    player.animations.play('leftWalk');
+                    sendToServer({type:"move",x:-1});
+                }
+            }
+            else if (cursors.right.isDown)
+            {
+                //  Move to the right
+                //player.body.velocity.x = 20;
+                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+                    player.animations.play('rightHit');
+                    //1 means for 
+                    sendToServer({type:"hit",status:1});
+                    playerStatus = 1;
+                }else{
+                    //player.body.velocity.x = 150;
+                    sendToServer({type:"move",x:1});
+                    player.animations.play('rightWalk');
+                }
+            }else if (game.input.pointer1.isDown){
                 sendToServer({type:"move",x:1});
                 player.animations.play('rightWalk');
+                //player.body.velocity.x = 150;
             }
-        }else if (game.input.pointer1.isDown){
-            sendToServer({type:"move",x:1});
-            player.animations.play('rightWalk');
-            //player.body.velocity.x = 150;
-        }
-        else{
-            //  Stand still
-            if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-                player.animations.play('rightHit');
-                sendToServer({type:"hit",status:1});
-                playerStatus = 1;
-            }else{
-                opponent.animations.stop();
-                player.animations.stop();
-                player.frame = 10;
-            }
+            else{
+                //  Stand still
+                if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+                    player.animations.play('rightHit');
+                        sendToServer({type:"hit",status:1});
+                        playerStatus = 1;
+                    }else{
+                        player.animations.stop();
+                        // if(directionOfPlayers[pid]===-1)
+                        //     player.frame = 10;
+                        // else
+                        //     player.frame = 9;
+                    }
+                }
+                
+                if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+                    fire();
+                }
+                
+                //  Allow the player to jump if they are touching the ground.
+                if (cursors.up.isDown && player.body.touching.down)
+                {
+                    player.body.velocity.y = -350;
+                }
         }
         
-        if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-            fire();
-        }
-        
-        //  Allow the player to jump if they are touching the ground.
-        if (cursors.up.isDown && player.body.touching.down)
-        {
-            player.body.velocity.y = -350;
-        }
     }
 
     function fire () {
@@ -350,10 +372,9 @@ function FighterClient(){
     }
 
     this.start = function (){
-        initNetwork();
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-    }
-
+        initNetwork();
+    };
     // This will auto run after this script is loaded
 
     // Run Client. Give leeway of 0.5 second for libraries to load

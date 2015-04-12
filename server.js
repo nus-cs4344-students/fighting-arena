@@ -28,7 +28,7 @@ function Server() {
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
     var players;      // Associative array for players, indexed via socket ID
-    var positions = [[Setting.WIDTH/4, Setting.HEIGHT.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
+    var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
         [Setting.WIDTH*3/4, Setting.HEIGHT*3/4],[Setting.WIDTH*3/4, Setting.HEIGHT/4]];
     /*
      * private method: broadcast(msg)
@@ -43,7 +43,7 @@ function Server() {
         for (id in sockets) {
             sockets[id].write(JSON.stringify(msg));
         }
-    }
+    };
 
     /*
      * private method: unicast(socket, msg)
@@ -55,7 +55,7 @@ function Server() {
      */
     var unicast = function (socket, msg) {
         socket.write(JSON.stringify(msg));
-    }
+    };
 
     /*
      * private method: reset()
@@ -70,26 +70,33 @@ function Server() {
             clearInterval(gameInterval);
             gameInterval = undefined;
         }
-    }
+    };
 
     var newPlayer = function (conn) {
 
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
-        xx = positions[count][0];
-        yy = positions[count][1];
-        direction = count < 2 ? 1 : -1;
-        players[conn.id] = new Player(conn.id, conn.id, xx, yy);
-        sockets[conn.id] = conn;
+        var xx = positions[count][0];
+        var yy = positions[count][1];
+        var direction = count<2 ? -1 :  1;
 
-        unicast(conn, {
+        players[conn.id] = new Player(conn.id, nextPID, xx, yy);
+        sockets[conn.id] = conn;
+        
+        unicast(conn,{type:"assign",pid:nextPID});
+        broadcast({
             type: "newPlayer",
-            pid:conn.id
+            count: count,
+            pid:nextPID,
             x: xx,
             y: yy,
-            direction: direction
+            direction: direction,
         });
+        //count actually has same function as nextPID;
         count++;
+        nextPID++;
+        console.log("Now we have " +count+" players");
+
         // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 
@@ -103,7 +110,7 @@ function Server() {
                 var y = p.fighter.y;
                 var date = new Date();
                 var currentTime = date.getTime();
-                var states = { 
+                var states = {
                     type: "update",
                     timestamp: currentTime,
                     x: x,
@@ -113,7 +120,7 @@ function Server() {
                 };
                 broadcast(states);
             }
-    }
+    };
 
     /*
      * priviledge method: start()
@@ -129,20 +136,25 @@ function Server() {
             var sockjs = require('sockjs');
             var sockjs_opts = {sockjs_url: "http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"};
             var sock = sockjs.createServer(sockjs_opts);
+
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
-                // Sends to client
-                broadcast({type:"message", content:"There is now " + count + " players"});
+                if(count>3){
+                    unicast(conn,{type:"full",message:"There are already 4 players playing"});
+                    return;
+                }
+                //create new player and brodcast it 
                 newPlayer(conn);
+
                 if (gameInterval == undefined){
                     gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
                 }
 
                 // When the client closes the connection to the server/closes the window
                 conn.on('close', function () {
-                    // Stop game if it's playing
-                    reset();
+                    if(count===0)
+                        reset();
 
                     // Decrease player counter
                     count--;
@@ -153,8 +165,8 @@ function Server() {
                     // Remove player who wants to quit/closed the window
                     delete players[conn.id];
 
-                    // Sends to everyone connected to server except the client
-                    broadcast({type:"message", action: "quit", pid: nextPID, content: " There is now " + count + " players."});
+                    broadcast({type:"disconnected", pid:nextPID});
+
                     console.log("disconnected");
                 });
 
@@ -191,7 +203,7 @@ function Server() {
 
             // reinitialize 
             count = 0;
-            nextPID = 1;
+            nextPID = 0;
             gameInterval = undefined;
             players = new Object;
             sockets = new Object;
@@ -203,9 +215,9 @@ function Server() {
             sock.installHandlers(httpServer, {prefix:'/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
-            console.log("Server running on http://0.0.0.0:" + 3333 + "\n")
+            console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
             console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
-                        "browser to start the game")
+                        "browser to start the game");
 
         } catch (e) {
             console.log("Cannot listen to " + 3333);

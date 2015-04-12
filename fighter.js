@@ -51,7 +51,7 @@ Fighter.prototype.move = function(newx,newy){
 	else
 		this.x = newx;
 	if(newy<0)
-		this.y=0
+		this.y=0;
 	else if (newy > Setting.HEIGHT-Fighter.HEIGHT)
 		this.y = Setting.HEIGHT-Fighter.HEIGHT;
 	else 
