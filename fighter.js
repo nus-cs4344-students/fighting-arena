@@ -27,7 +27,7 @@ function Fighter(xPos,yPos,status){
     this.isInjured;
 	// Constructor
 	var that = this; 
-	this.hp = 100;
+	this.hp = 1000;
 	this.x = xPos;
 	this.y = yPos;
     this.status = status;
@@ -111,11 +111,12 @@ Fighter.prototype.moveOneStepDown = function() {
  * Reset the position of paddle
  */
 Fighter.prototype.reset = function() {
-	this.hp = 100;
+	this.hp = 1000;
 }
 
 Fighter.prototype.getHitted = function(damage){
 	this.hp -= damage;
+	if(this.hp<=0) this.hp=0;
 	this.isInjured = true;
 }
 /*

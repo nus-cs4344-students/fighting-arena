@@ -21,7 +21,7 @@ function FighterClient(username){
     var myPID;
     var injuryRecovered = false;
     var hitpointSprite = [];
-    var fullHP = 100;
+    var fullHP = 1000;
     var hitpointBarScale = 0.35;
     var isTouchingHit = false;
     var isTouchingLeft = false;
