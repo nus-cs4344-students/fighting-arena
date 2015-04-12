@@ -25,6 +25,7 @@ function FighterClient(){
     var injuryRecovered = false;
     var hitpointSprite = [];
     var fullHP = 100;
+    var hitpointBarScale = 0.35;
 
     /*
      * private method: showMessage(location, msg)
@@ -181,7 +182,7 @@ function FighterClient(){
             var newHp = game.add.sprite(positions[i][0], positions[i][1], 'hitpoint');
 
             newPlayer.scale.setTo(2,2);
-            newHp.scale.setTo(0.4,0.4);
+            newHp.scale.setTo(hitpointBarScale, hitpointBarScale);
 
             //  enable physics on player
             game.physics.arcade.enable(newPlayer);
@@ -312,7 +313,7 @@ function FighterClient(){
                 // update position and size of health bar
                 healthBar.body.velocity.x = vx;
                 healthBar.body.velocity.y = vy;
-                healthBar.scale.setTo(0.4 * hp / fullHP, 0.4);
+                healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
 
                 player.body.velocity.x = vx;
                 player.body.velocity.y = vy;
