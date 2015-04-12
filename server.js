@@ -262,9 +262,9 @@ function Server() {
             sock.installHandlers(httpServer, {prefix:'/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
-            //console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
-            //console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
-                        "browser to start the game");
+            console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
+            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
+             "browser to start the game");
 
         } catch (e) {
             console.log("Cannot listen to " + 3333);
