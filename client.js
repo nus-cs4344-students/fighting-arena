@@ -162,7 +162,9 @@ function FighterClient(username){
                         break;
                     case "update":
                         var id = message.pid;
-                        texts[id].text = message.username;
+                        if (message.username){
+                            texts[id].text = message.username;
+                        }
                         fighters[id].x = message.x;
                         fighters[id].y = message.y;
                         fighters[id].vx = message.vx;
