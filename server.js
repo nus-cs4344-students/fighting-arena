@@ -125,7 +125,8 @@ function Server() {
                     status: p.fighter.status,
                     injuryStatus: p.fighter.isInjured,
                     isHitting: p.fighter.isHitting,
-                    facingDirection: p.fighter.facingDirection
+                    facingDirection: p.fighter.facingDirection,
+                    username: p.username
                 };
                 broadcast(states);
             }
