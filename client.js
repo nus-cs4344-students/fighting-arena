@@ -1,6 +1,6 @@
 // private variables
 
-function FighterClient(){
+function FighterClient(username){
 
     var socket;         // socket used to connect to server 
     var cursors;
@@ -32,6 +32,7 @@ function FighterClient(){
     var isTouchingRight = false;
     var isTouchingUp = false;
     var isTouchingDown = false;
+    var myName = username;
 
     /*
      * private method: showMessage(location, msg)
@@ -207,6 +208,11 @@ function FighterClient(){
                     default: 
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
                 }
+                
+                sendToServer({
+                    type: "newPlayer",
+                    name: myName
+                });
             }
         } catch (e) {
             console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
@@ -523,18 +529,29 @@ function FighterClient(){
 
 }
 
-var client = new FighterClient();
-$('#myModal').modal('show');
-if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-    //if mobile, check device orientation
-    if (Math.abs(window.orientation) === 90) {
-        setTimeout(function() {client.start();}, 500);
+function dismissModal(){
+    if($('#username').val()){
+        $('#myModal').modal('hide');
     }
-    $(window).on("orientationchange",function(event){
-        if(window.orientation === 90){
+}
+
+$( document ).ready(function() {
+    $('#myModal').modal('show');
+    $('#myModal').on('hidden.bs.modal', function (e) {
+        var username = $('#username').val();
+        var client = new FighterClient(username);
+        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+            //if mobile, check device orientation
+            if (Math.abs(window.orientation) === 90) {
+                setTimeout(function() {client.start();}, 500);
+            }
+            $(window).on("orientationchange",function(event){
+                if(window.orientation === 90){
+                    setTimeout(function() {client.start();}, 500);
+                }
+            });
+        } else { //starts otherwise
             setTimeout(function() {client.start();}, 500);
         }
-    });
-} else { //starts otherwise
-    setTimeout(function() {client.start();}, 500);
-}
+    })
+});
