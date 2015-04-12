@@ -290,7 +290,6 @@ function FighterClient(){
             //console.log(fighters[i].hp);
             //console.log(fighters[i].isInjured);
             //console.log(vx+"vy:"+vy);
-            console.log(isInjured);
             if(vx!==undefined && vy!==undefined){
                 player.visible = true;
                 healthBar.visible = true;
@@ -442,7 +441,7 @@ function FighterClient(){
     }
 
     this.start = function (){
-        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, "gameDiv", { preload: preload, create: create, update: update });
         initNetwork();
     }
     // This will auto run after this script is loaded
@@ -454,7 +453,6 @@ function FighterClient(){
 
 var client = new FighterClient();
 setTimeout(function() {client.start();}, 500);
-
 
 
 
