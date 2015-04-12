@@ -528,25 +528,6 @@ if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
     //if mobile, check device orientation
     if (window.orientation === 90) {
         setTimeout(function() {client.start();}, 500);
-            GameController.init({
-                left: {
-                    type: 'joystick'
-                },
-                right: {
-                    position: {
-                        right: '5%'
-                    },
-                    type: 'buttons',
-                    buttons: [
-                    {
-                        label: 'jump', fontsize: 13, touchstart: function() {
-                            // do something
-                        }
-                    },
-                    false, false, false
-                    ]
-                }
-            });
     }
     $(window).on("orientationchange",function(event){
         if(window.orientation === 90){

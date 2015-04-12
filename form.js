@@ -8,7 +8,6 @@ $(function() {
 
     $("#hostGame").click(function () {
         $("#buttonsContainer").addClass("hide");
-        $("#qrcodeContainer").removeClass("hide");
 
         var $playersCount= $("#playersCount");
 
