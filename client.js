@@ -13,6 +13,7 @@ function FighterClient(username){
     var currentWeapon = 0 ;
     var players = [];
     var fighters = [];
+    var texts = [];
     var serverMsg;
     var hasPlayed = false;
     var game ;
@@ -161,6 +162,7 @@ function FighterClient(username){
                         break;
                     case "update":
                         var id = message.pid;
+                        texts[id].text = message.username;
                         fighters[id].x = message.x;
                         fighters[id].y = message.y;
                         fighters[id].vx = message.vx;
@@ -271,6 +273,11 @@ function FighterClient(username){
             fighters[i] = new Fighter(positions[i][0], positions[i][1], 0);
             newPlayer.visible = false;
             newHp.visible = false;
+            var tt = game.add.text(16, 16, '', { fontSize: '20px', fill: '#FFF' });
+            tt.anchor.set(0.5);
+            texts[i] = tt;
+            tt.visible = false;
+
         }
         //  Finally some stars to collect
         stars = game.add.group();
@@ -352,6 +359,9 @@ function FighterClient(username){
             var isInjured = fighters[i].isInjured;
             var hp = fighters[i].hp;
             var healthBar = hitpointSprite[i];
+            texts[i].visible = true;
+            texts[i].x = fighters[i].x + 22;
+            texts[i].y = fighters[i].y - 8;
             
             if(i!==myPID){
                 player.body.x = fighter.x;
