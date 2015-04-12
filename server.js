@@ -208,7 +208,7 @@ function Server() {
                             if(p.fighter.isHitting){
                                 for(id in players){
                                     var opponent = players[id];
-                                    if(id != conn.id && !p.fighter.isInjured){
+                                    if(id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
                                         if(p.fighter.facingDirection == 'right'){
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             console.log(tOFRight);
