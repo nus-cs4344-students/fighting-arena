@@ -116,6 +116,7 @@ Fighter.prototype.reset = function() {
 
 Fighter.prototype.getHitted = function(damage){
 	this.hp -= damage;
+	this.isInjured = true;
 }
 /*
  * public method: isAtLeft()
