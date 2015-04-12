@@ -107,12 +107,6 @@ function FighterClient(){
                             fighters[id].vy = message.vy;
                             fighters[id].facingDirection = message.facingDirection;
                             fighters[id].isHitting = message.isHitting;
-
-                            // vxOfPlayers[message.pid] = message.vx;
-                            // vyOfPlayers[message.pid] = message.vy;
-                            // directions[message.pid] = message.facingDirection;
-                            // hitStatus[message.pid] = message.isHitting;
-                            //console.log("udpatedX:"+message.x+"updatedY:"+message.y);
                         }
                         break;
                     case "updateVelocity":
