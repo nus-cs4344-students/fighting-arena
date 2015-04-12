@@ -1,6 +1,7 @@
 // private variables
 
 function FighterClient(){
+
     var socket;         // socket used to connect to server 
     var cursors;
     var stars;
@@ -173,6 +174,9 @@ function FighterClient(){
         // phaser physics world 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
+        //add button
+        //button = game.add.button(game.world.centerX - 95, 460, 'button', openWindow, this, 2, 1, 0);
+
         // add sky 
         game.add.sprite(0, 0, 'sky');
         var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
@@ -236,8 +240,8 @@ function FighterClient(){
         bullets.setAll('outOfBoundsKill', true);
         bullets.setAll('checkWorldBounds', true);
 
-        //  The score
-        //scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        //  The # of players
+        num_text = game.add.text(16, 16, '# of players: '+ numOfPlayers, { fontSize: '16px', fill: '#000' });
 
         //  Our controls.
         cursors = game.input.keyboard.createCursorKeys();
@@ -246,6 +250,7 @@ function FighterClient(){
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
         var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
         //    changeKey.onDown.add(nextWeapon, this);
+
     }
 
     function createPlayer(pid,x,y,direction) {
@@ -257,15 +262,19 @@ function FighterClient(){
         p.visible = true;
         console.log("created player of "+pid);
         console.log("local postion updated"+x+" "+" "+y);
+        numOfPlayers++;
+
     }
 
     function deletePlayer(pid){
         console.log("deleted player of "+pid);
         players[pid].visible = false;
+        numOfPlayers--;
     }
 
     function renderGame(){
         //here is for rendering
+        num_text.setText('# of players: '+ numOfPlayers);
         for(var i=0;i<players.length;i++){
             var animaPlayed = false;
             var player = players[i];
@@ -325,8 +334,8 @@ function FighterClient(){
                     player.body.velocity.x = vx;
                     player.body.velocity.y = vy;
                 }
-                healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
-
+                if(hp>=0)
+                    healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
             }
         }
     }
@@ -440,6 +449,7 @@ function FighterClient(){
 
     // Run Client. Give leeway of 0.5 second for libraries to load
     // vim:ts=4:sw=4:expandtab
+
 }
 
 var client = new FighterClient();
