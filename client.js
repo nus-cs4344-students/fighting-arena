@@ -18,7 +18,8 @@ function FighterClient(){
     var game ;
     var vxOfPlayers = {};
     var vyOfPlayers = {};
-    var directions = [];
+    var hitStatus = {};
+    var directions = {};
     var numOfPlayers = 0;
     var myPID;
     /*
@@ -102,6 +103,8 @@ function FighterClient(){
                         }else{
                             vxOfPlayers[message.pid] = message.vx;
                             vyOfPlayers[message.pid] = message.vy;
+                            directions[message.pid] = message.facingDirection;
+                            hitStatus[message.pid] = message.isHitting;
                             //console.log("udpatedX:"+message.x+"updatedY:"+message.y);
                         }
                         break;
@@ -240,51 +243,76 @@ function FighterClient(){
         players[pid].visible = false;
     }
 
-    // function renderGame(serverMsg){
-
-    // }
-
-    function update() {
+    function renderGame(){
+        //here is for rendering
         for(var i=0;i<players.length;i++){
             if(vxOfPlayers[i]!==undefined && vyOfPlayers[i]!==undefined){
-                //players[i].visible = true;
-                if(vxOfPlayers[i]>0){
-                    players[i].animations.play("rightWalk");
-                }else if(vxOfPlayers[i]<0){
-                    players[i].animations.play("leftWalk");
+                players[i].visible = true;
+                console.log(hitStatus[i]+directions[i]);
+                if(hitStatus[i]){
+                    if(directions[i]==="left"){
+                        players[i].animations.play('leftHit');
+                    }else if(directions[i]==="right"){
+                        players[i].animations.play('rightHit');
+                    }
                 }else{
-                    players[i].animations.stop();
+                    if(vxOfPlayers[i]>0){
+                        players[i].animations.play("rightWalk");
+                    }else if(vxOfPlayers[i]<0){
+                        players[i].animations.play("leftWalk");
+                    }else{
+                        players[i].animations.stop();
+                        players[i].frame = directions[i]==="left"?9:10;
+                    }
                 }
-                console.log("vx:"+vxOfPlayers[i]);
+                
                 players[i].body.velocity.x = vxOfPlayers[i];
                 players[i].body.velocity.y = vyOfPlayers[i];
             }
         }
-        // game.physics.arcade.collide(player,opponent);
+    }
 
+    function update() {
+
+        renderGame();
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
         //game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
         //game.physics.arcade.overlap(player, stars, collectStar, null, this);
         //  Reset the players velocity (movement)
         var vx = 0;
         var vy = 0;
+        var isHitting = false;
+        var facingDirection = directions[myPID];
         if(player !== undefined){
             if(cursors.up.isDown){
-                vy = -50;
+                vy = -150;
             }else if(cursors.down.isDown){
-                vy = 50;
-            }else if (cursors.left.isDown){
+                vy = 150;
+            }
+            if (cursors.left.isDown){
                 vx = -150;
+                facingDirection = "left";
             }else if (cursors.right.isDown){
                 vx = 150;
+                facingDirection = "right";
             }
+            if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
+                isHitting= true;
+            }
+            sendToServer({
+                type:"move",
+                x:player.body.x,
+                y:player.body.y,
+                vx:vx,
+                vy:vy,
+            });
+            sendToServer({
+                type:"attack",
+                isHitting:isHitting,
+                facingDirection:facingDirection
+            });
         }
-        sendToServer({
-            type:"move",
-            x:player.body.x,
-            y:player.body.y,
-            vx:vx,
-            vy:vy});
+        
     }
 
     function fire () {

@@ -22,13 +22,15 @@ function Fighter(xPos,yPos,status){
     this.vy; 
     this.hp;
     this.status; 
-
+    this.isHitting;
+    this.facingDirection;
 	// Constructor
 	var that = this; 
 	this.hp = 100;
 	this.x = xPos;
 	this.y = yPos;
     this.status = status;
+    this.facingDirection = "right";
 }
 
 // Static variables

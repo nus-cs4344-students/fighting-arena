@@ -110,7 +110,7 @@ function Server() {
                 var yy = p.fighter.y;
                 var vx = p.fighter.vx;
                 var vy = p.fighter.vy;
-                console.log("vx:"+vx+"vy:"+vy);
+                console.log(p.fighter.isHitting+p.fighter.facingDirection);
                 var date = new Date();
                 var currentTime = date.getTime();
                 var states = {
@@ -121,7 +121,9 @@ function Server() {
                     vx: vx,
                     vy: vy,
                     pid: p.pid,
-                    status: p.status
+                    status: p.status,
+                    isHitting: p.fighter.isHitting,
+                    facingDirection: p.fighter.facingDirection
                 };
                 broadcast(states);
             }
@@ -191,6 +193,10 @@ function Server() {
                         case "move":
                             p.fighter.vx = message.vx;
                             p.fighter.vy = message.vy;
+                            break;
+                        case "attack":
+                            p.fighter.isHitting = message.isHitting;
+                            p.fighter.facingDirection = message.facingDirection;
                             break;
                         default:
                             console.log("Unhandled " + message.type);
