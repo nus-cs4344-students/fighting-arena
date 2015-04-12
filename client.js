@@ -555,7 +555,7 @@ function dismissModal(){
 $( document ).ready(function() {
     $('#myModal').modal('show');
     $('#myModal').on('hidden.bs.modal', function (e) {
-        var username = $('#username').val();
+        var username = $('#username').val().substring(0,15);
         var client = new FighterClient(username);
         if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
             //if mobile, check device orientation
