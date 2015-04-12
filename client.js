@@ -10,6 +10,7 @@ function FighterClient(){
     var nextFire = 0;
     var score = 0;
     var scoreText;
+    var player;
     var currentWeapon = 0 ;
     var players = [];
     var serverMsg;
@@ -18,6 +19,7 @@ function FighterClient(){
     var xOfPlayers = {};
     var yOfPlayers = {};
     var directions = [];
+    var numOfPlayers = 0;
     /*
      * private method: showMessage(location, msg)
      *
@@ -237,9 +239,6 @@ function FighterClient(){
     }
 
     function update() {
-        for(var j=0;j<4;j++){
-            players[j].visible = false;
-        }
         for(var i=0;i<players.length;i++){
             if(xOfPlayers[i]!==undefined && yOfPlayers[i]!==undefined){
                 players[i].visible = true;
