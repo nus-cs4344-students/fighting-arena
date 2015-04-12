@@ -150,6 +150,7 @@ function FighterClient(username){
                         var initX = message.x;
                         var initY = message.y;
                         var direction = message.direction;
+                        numOfPlayers = message.count+1;
                         createPlayer(pid,initX,initY,direction);
                         break;
                     //player disconnected
@@ -337,7 +338,6 @@ function FighterClient(username){
         p.visible = true;
         console.log("created player of "+pid);
         console.log("local postion updated"+x+" "+" "+y);
-        numOfPlayers++;
         sendToServer({
             type:"newPlayer",
             username: myName
@@ -348,7 +348,6 @@ function FighterClient(username){
     function deletePlayer(pid){
         console.log("deleted player of "+pid);
         players[pid].visible = false;
-        numOfPlayers--;
     }
 
     function renderGame(){

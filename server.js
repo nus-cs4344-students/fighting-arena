@@ -28,6 +28,7 @@ function Server() {
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
     var players;      // Associative array for players, indexed via socket ID
+    var pidMap = {};
     /*
      * private method: broadcast(msg)
      *
@@ -80,6 +81,7 @@ function Server() {
 
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY);
         sockets[conn.id] = conn;
+        pidMap[nextPID] = true;
 
         unicast(conn,{type:"assign",pid:nextPID});
         broadcast({
@@ -92,9 +94,12 @@ function Server() {
         });
         //count actually has same function as nextPID;
         count++;
-        nextPID++;
         console.log("Now we have " +count+" players");
-
+        for(var i=0;i<20;i++){
+            if(!(i in pidMap)){
+                nextPID = i;
+            }
+        }
         // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 
@@ -172,6 +177,7 @@ function Server() {
 
                     // Remove player who wants to quit/closed the window
                     delete players[conn.id];
+                    delete pidMap[nextPID];
 
                     broadcast({type:"disconnected", pid:nextPID});
 
