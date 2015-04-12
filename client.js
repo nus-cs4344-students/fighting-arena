@@ -524,6 +524,7 @@ function FighterClient(){
 }
 
 var client = new FighterClient();
+$('#myModal').modal('show');
 if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
     //if mobile, check device orientation
     if (window.orientation === 90) {
