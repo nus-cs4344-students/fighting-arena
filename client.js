@@ -1,6 +1,5 @@
 // private variables
 
-
 function FighterClient(){
     var socket;         // socket used to connect to server 
     var cursors;
@@ -10,13 +9,13 @@ function FighterClient(){
     var nextFire = 0;
     var score = 0;
     var scoreText;
-    var player;
     var currentWeapon = 0 ;
     var players = [];
     var fighters = [];
     var serverMsg;
     var hasPlayed = false;
     var game ;
+    var connectedToServer = false;
     var vxOfPlayers = {};
     var vyOfPlayers = {};
     var hitStatus = {};
@@ -94,7 +93,8 @@ function FighterClient(){
                         deletePlayer(message.pid);
                         break;
                     case "assign":
-                        player = players[message.pid];
+                        connectedToServer = true;
+                        myPlayer = players[message.pid];
                         myPID = message.pid;
                         break;
                     case "update":
@@ -102,10 +102,16 @@ function FighterClient(){
                             //console.log("pid:"+message.pid);
                             createPlayer(message.pid,message.x,message.y,1);
                         }else{
-                            vxOfPlayers[message.pid] = message.vx;
-                            vyOfPlayers[message.pid] = message.vy;
-                            directions[message.pid] = message.facingDirection;
-                            hitStatus[message.pid] = message.isHitting;
+                            var id = message.pid;
+                            fighters[id].vx = message.vx;
+                            fighters[id].vy = message.vy;
+                            fighters[id].facingDirection = message.facingDirection;
+                            fighters[id].isHitting = message.isHitting;
+
+                            // vxOfPlayers[message.pid] = message.vx;
+                            // vyOfPlayers[message.pid] = message.vy;
+                            // directions[message.pid] = message.facingDirection;
+                            // hitStatus[message.pid] = message.isHitting;
                             //console.log("udpatedX:"+message.x+"updatedY:"+message.y);
                         }
                         break;
@@ -234,7 +240,7 @@ function FighterClient(){
         var p = players[pid];
         p.body.x = x;
         p.body.y = y;
-        directions[pid] = direction;
+        fighters[pid].facingDirection = direction;
         p.visible = true;
         console.log("created player of "+pid);
         console.log("local postion updated"+x+" "+" "+y);
@@ -248,27 +254,34 @@ function FighterClient(){
     function renderGame(){
         //here is for rendering
         for(var i=0;i<players.length;i++){
-            if(vxOfPlayers[i]!==undefined && vyOfPlayers[i]!==undefined){
-                players[i].visible = true;
-                console.log(hitStatus[i]+directions[i]);
-                if(hitStatus[i]){
-                    if(directions[i]==="left"){
-                        players[i].animations.play('leftHit');
-                    }else if(directions[i]==="right"){
-                        players[i].animations.play('rightHit');
+            var player = players[i];
+
+            var vx = fighters[i].vx;
+            var vy = fighters[i].vy;
+            var direction = fighters[i].facingDirection;
+            var isHitting = fighters[i].isHitting;
+            var isInjured = fighters[i].isInjured;
+
+            if(vx!==undefined && vy!==undefined){
+                player.visible = true;
+                if(isHitting){
+                    if(direction==="left"){
+                        player.animations.play('leftHit');
+                    }else if(direction==="right"){
+                        player.animations.play('rightHit');
                     }
                 }else{
-                    if(vxOfPlayers[i]>0){
-                        players[i].animations.play("rightWalk");
-                    }else if(vxOfPlayers[i]<0){
-                        players[i].animations.play("leftWalk");
+                    if(vx>0){
+                        player.animations.play("rightWalk");
+                    }else if(vx<0){
+                        player.animations.play("leftWalk");
                     }else{
-                        players[i].animations.stop();
-                        players[i].frame = directions[i]==="left"?9:10;
+                        player.animations.stop();
+                        player.frame = direction==="left"?9:10;
                     }
                 }
-                players[i].body.velocity.x = vxOfPlayers[i];
-                players[i].body.velocity.y = vyOfPlayers[i];
+                player.body.velocity.x = vx;
+                player.body.velocity.y = vy;
             }
         }
     }
@@ -283,8 +296,10 @@ function FighterClient(){
         var vx = 0;
         var vy = 0;
         var isHitting = false;
-        var facingDirection = directions[myPID];
-        if(player !== undefined){
+        if(connectedToServer){
+            var myPlayer = players[myPID];
+            var myFighter = fighters[myPID];
+            var facingDirection = myFighter.facingDirection;
             if(cursors.up.isDown){
                 vy = -150;
             }else if(cursors.down.isDown){
@@ -302,8 +317,8 @@ function FighterClient(){
             }
             sendToServer({
                 type:"move",
-                x:player.body.x,
-                y:player.body.y,
+                x:myPlayer.body.x,
+                y:myPlayer.body.y,
                 vx:vx,
                 vy:vy,
             });
