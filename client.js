@@ -286,37 +286,44 @@ function FighterClient(){
                 player.visible = true;
                 healthBar.visible = true;
 
-                if(isInjured){
-                    if(direction==="left"){
-                        player.animations.play('leftHitted');
-                    }else if(direction==="right"){
-                        player.animations.play('rightHitted');
-                    }
-                    setTimeout(function() {injuryRecovered=true;}, 1100);
-                }else if(isHitting){
-                    if(direction==="left"){
-                        player.animations.play('leftHit');
-                    }else if(direction==="right"){
-                        player.animations.play('rightHit');
-                    }
-                }else{
-                    if(vx>0){
-                        player.animations.play("rightWalk");
-                    }else if(vx<0){
-                        player.animations.play("leftWalk");
-                    }else{
-                        player.animations.stop();
-                        player.frame = direction==="left"?9:10;
-                    }
+                if(hp <= 0){
+                    player.animations.stop();
+                    player.frame = direction==="right"?57:68;
                 }
+                else{
 
-                // update position and size of health bar
-                healthBar.body.velocity.x = vx;
-                healthBar.body.velocity.y = vy;
-                healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
+                    if(isInjured){
+                        if(direction==="left"){
+                            player.animations.play('leftHitted');
+                        }else if(direction==="right"){
+                            player.animations.play('rightHitted');
+                        }
+                        setTimeout(function() {injuryRecovered=true;}, 1100);
+                    }else if(isHitting){
+                        if(direction==="left"){
+                            player.animations.play('leftHit');
+                        }else if(direction==="right"){
+                            player.animations.play('rightHit');
+                        }
+                    }else{
+                        if(vx>0){
+                            player.animations.play("rightWalk");
+                        }else if(vx<0){
+                            player.animations.play("leftWalk");
+                        }else{
+                            player.animations.stop();
+                            player.frame = direction==="left"?9:10;
+                        }
+                    }
 
-                player.body.velocity.x = vx;
-                player.body.velocity.y = vy;
+                    // update position and size of health bar
+                    healthBar.body.velocity.x = vx;
+                    healthBar.body.velocity.y = vy;
+                    healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
+
+                    player.body.velocity.x = vx;
+                    player.body.velocity.y = vy;
+                }
             }
         }
     }
@@ -355,20 +362,23 @@ function FighterClient(){
             if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
                 isHitting= true;
             }
-            sendToServer({
-                type:"move",
-                x:myPlayer.body.x,
-                y:myPlayer.body.y,
-                vx:vx,
-                vy:vy,
-            });
 
-            sendToServer({
-                type:"attack",
-                isInjured:myFighter.isInjured,
-                isHitting:isHitting,
-                facingDirection:facingDirection
-            });
+            if(myFighter.hp > 0){
+                sendToServer({
+                    type:"move",
+                    x:myPlayer.body.x,
+                    y:myPlayer.body.y,
+                    vx:vx,
+                    vy:vy,
+                });
+
+                sendToServer({
+                    type:"attack",
+                    isInjured:myFighter.isInjured,
+                    isHitting:isHitting,
+                    facingDirection:facingDirection
+                });
+            }
         }
         
     }
