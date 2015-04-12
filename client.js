@@ -1,14 +1,15 @@
 // private variables
 
 function FighterClient(){
+
     var socket;         // socket used to connect to server 
     var cursors;
     var stars;
     var bullets;
     var fireRate = 100;
     var nextFire = 0;
-    var score = 0;
-    var scoreText;
+    //var score = 0;
+    //var scoreText;
     var currentWeapon = 0 ;
     var players = [];
     var fighters = [];
@@ -246,6 +247,9 @@ function FighterClient(){
      
         this.scale.setScreenSize(true);
 
+        //add button
+        //button = game.add.button(game.world.centerX - 95, 460, 'button', openWindow, this, 2, 1, 0);
+
         // add sky 
         game.add.sprite(0, 0, 'sky');
         var positions = [[Setting.WIDTH/4, Setting.HEIGHT/4], [Setting.WIDTH/4, Setting.HEIGHT*3/4],
@@ -309,8 +313,8 @@ function FighterClient(){
         bullets.setAll('outOfBoundsKill', true);
         bullets.setAll('checkWorldBounds', true);
 
-        //  The score
-        scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        //  The # of players
+        num_text = game.add.text(16, 16, '# of players: '+ numOfPlayers, { fontSize: '16px', fill: '#000' });
 
         //  Our controls.
         cursors = game.input.keyboard.createCursorKeys();
@@ -331,15 +335,19 @@ function FighterClient(){
         p.visible = true;
         console.log("created player of "+pid);
         console.log("local postion updated"+x+" "+" "+y);
+        numOfPlayers++;
+
     }
 
     function deletePlayer(pid){
         console.log("deleted player of "+pid);
         players[pid].visible = false;
+        numOfPlayers--;
     }
 
     function renderGame(){
         //here is for rendering
+        num_text.setText('# of players: '+ numOfPlayers);
         for(var i=0;i<players.length;i++){
             var animaPlayed = false;
             var player = players[i];
@@ -355,42 +363,51 @@ function FighterClient(){
             //console.log(fighters[i].hp);
             //console.log(fighters[i].isInjured);
             //console.log(vx+"vy:"+vy);
-            console.log(isInjured);
             if(vx!==undefined && vy!==undefined){
                 player.visible = true;
                 healthBar.visible = true;
+                player.body.velocity.x = 0;
+                player.body.velocity.y = 0;
+                healthBar.body.velocity.x = 0;
+                healthBar.body.velocity.y = 0;
 
-                if(isInjured){
-                    if(direction==="left"){
-                        player.animations.play('leftHitted');
-                    }else if(direction==="right"){
-                        player.animations.play('rightHitted');
-                    }
-                    setTimeout(function() {injuryRecovered=true;}, 1100);
-                }else if(isHitting){
-                    if(direction==="left"){
-                        player.animations.play('leftHit');
-                    }else if(direction==="right"){
-                        player.animations.play('rightHit');
-                    }
-                }else{
-                    if(vx>0){
-                        player.animations.play("rightWalk");
-                    }else if(vx<0){
-                        player.animations.play("leftWalk");
-                    }else{
-                        player.animations.stop();
-                        player.frame = direction==="left"?9:10;
-                    }
+                if(hp <= 0){
+                    player.animations.stop();
+                    player.frame = direction==="right"?57:68;
                 }
+                else{
 
-                // update position and size of health bar
-                healthBar.body.velocity.x = vx;
-                healthBar.body.velocity.y = vy;
-                healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
+                    if(isInjured){
+                        if(direction==="left"){
+                            player.animations.play('leftHitted');
+                        }else if(direction==="right"){
+                            player.animations.play('rightHitted');
+                        }
+                        setTimeout(function() {injuryRecovered=true;}, 1100);
+                    }else if(isHitting){
+                        if(direction==="left"){
+                            player.animations.play('leftHit');
+                        }else if(direction==="right"){
+                            player.animations.play('rightHit');
+                        }
+                    }else{
+                        if(vx>0){
+                            player.animations.play("rightWalk");
+                        }else if(vx<0){
+                            player.animations.play("leftWalk");
+                        }else{
+                            player.animations.stop();
+                            player.frame = direction==="left"?9:10;
+                        }
+                    }
+                    healthBar.body.velocity.x = vx;
+                    healthBar.body.velocity.y = vy;
 
-                player.body.velocity.x = vx;
-                player.body.velocity.y = vy;
+                    player.body.velocity.x = vx;
+                    player.body.velocity.y = vy;
+                }
+                if(hp>=0)
+                    healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
             }
         }
     }
@@ -429,20 +446,23 @@ function FighterClient(){
             if(this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit){
                 isHitting= true;
             }
-            sendToServer({
-                type:"move",
-                x:myPlayer.body.x,
-                y:myPlayer.body.y,
-                vx:vx,
-                vy:vy,
-            });
 
-            sendToServer({
-                type:"attack",
-                isInjured:myFighter.isInjured,
-                isHitting:isHitting,
-                facingDirection:facingDirection
-            });
+            if(myFighter.hp > 0){
+                sendToServer({
+                    type:"move",
+                    x:myPlayer.body.x,
+                    y:myPlayer.body.y,
+                    vx:vx,
+                    vy:vy,
+                });
+
+                sendToServer({
+                    type:"attack",
+                    isInjured:myFighter.isInjured,
+                    isHitting:isHitting,
+                    facingDirection:facingDirection
+                });
+            }
         }
         
     }
@@ -488,8 +508,8 @@ function FighterClient(){
         star.kill();
         //nextWeapon();
         //  Add and update the score
-        score += 10;
-        scoreText.text = 'Score: ' + score;
+        //score += 10;
+        //scoreText.text = 'Score: ' + score;
 
     }
 
@@ -500,6 +520,7 @@ function FighterClient(){
 
     // Run Client. Give leeway of 0.5 second for libraries to load
     // vim:ts=4:sw=4:expandtab
+
 }
 
 var client = new FighterClient();
