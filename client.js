@@ -285,6 +285,10 @@ function FighterClient(){
             if(vx!==undefined && vy!==undefined){
                 player.visible = true;
                 healthBar.visible = true;
+                player.body.velocity.x = 0;
+                player.body.velocity.y = 0;
+                healthBar.body.velocity.x = 0;
+                healthBar.body.velocity.y = 0;
 
                 if(isInjured){
                     if(direction==="left"){
@@ -308,15 +312,16 @@ function FighterClient(){
                         player.animations.stop();
                         player.frame = direction==="left"?9:10;
                     }
-                }
+                    healthBar.body.velocity.x = vx;
+                    healthBar.body.velocity.y = vy;
 
-                // update position and size of health bar
-                healthBar.body.velocity.x = vx;
-                healthBar.body.velocity.y = vy;
+                    player.body.velocity.x = vx;
+                    player.body.velocity.y = vy;
+                }
                 healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
 
-                player.body.velocity.x = vx;
-                player.body.velocity.y = vy;
+                // update position and size of health bar
+                
             }
         }
     }

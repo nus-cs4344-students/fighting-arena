@@ -122,7 +122,7 @@ function Server() {
                     vy: vy,
                     pid: p.pid,
                     hp: p.fighter.hp,
-                    status: p.status,
+                    status: p.fighter.status,
                     injuryStatus: p.fighter.isInjured,
                     isHitting: p.fighter.isHitting,
                     facingDirection: p.fighter.facingDirection
