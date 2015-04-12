@@ -7,8 +7,8 @@ function FighterClient(){
     var bullets;
     var fireRate = 100;
     var nextFire = 0;
-    var score = 0;
-    var scoreText;
+    //var score = 0;
+    //var scoreText;
     var currentWeapon = 0 ;
     var players = [];
     var fighters = [];
@@ -237,7 +237,7 @@ function FighterClient(){
         bullets.setAll('checkWorldBounds', true);
 
         //  The score
-        scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        //scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
         //  Our controls.
         cursors = game.input.keyboard.createCursorKeys();
@@ -424,8 +424,8 @@ function FighterClient(){
         star.kill();
         //nextWeapon();
         //  Add and update the score
-        score += 10;
-        scoreText.text = 'Score: ' + score;
+        //score += 10;
+        //scoreText.text = 'Score: ' + score;
 
     }
 
