@@ -223,7 +223,7 @@ function Server() {
                                             //console.log(tOFBtm);
                                             if(p.fighter.x <= tOFRight && p.fighter.x >= tOFLeft && p.fighter.y <= tOFTop && p.fighter.y >= tOFBtm){
                                                 opponent.fighter.getHitted(10);
-                                                console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
+                                                //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
                                             }
                                         }
@@ -233,7 +233,7 @@ function Server() {
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
                                                 && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)){
                                                 //player.fighter.getHitted(HITPOINT_NORMAL);
-                                                console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
+                                                //console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
                                             }
@@ -262,8 +262,8 @@ function Server() {
             sock.installHandlers(httpServer, {prefix:'/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
-            console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
-            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
+            //console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
+            //console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
                         "browser to start the game");
 
         } catch (e) {
