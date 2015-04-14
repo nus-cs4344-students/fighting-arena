@@ -28,6 +28,7 @@ function Server() {
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
     var players;      // Associative array for players, indexed via socket ID
+    var pidMap = {};
     /*
      * private method: broadcast(msg)
      *
@@ -80,6 +81,7 @@ function Server() {
 
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY);
         sockets[conn.id] = conn;
+        pidMap[nextPID] = true;
 
         unicast(conn,{type:"assign",pid:nextPID});
         broadcast({
@@ -92,9 +94,12 @@ function Server() {
         });
         //count actually has same function as nextPID;
         count++;
-        nextPID++;
         console.log("Now we have " +count+" players");
-
+        for(var i=0;i<20;i++){
+            if(!(i in pidMap)){
+                nextPID = i;
+            }
+        }
         // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 
@@ -172,6 +177,7 @@ function Server() {
 
                     // Remove player who wants to quit/closed the window
                     delete players[conn.id];
+                    delete pidMap[nextPID];
 
                     broadcast({type:"disconnected", pid:nextPID});
 
@@ -262,9 +268,15 @@ function Server() {
             sock.installHandlers(httpServer, {prefix:'/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
+<<<<<<< HEAD
             //console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
             //console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
                         // "browser to start the game");
+=======
+            console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
+            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
+             "browser to start the game");
+>>>>>>> 4e48b5d705f2606824c3111da15e4a765c529bf4
 
         } catch (e) {
             console.log("Cannot listen to " + 3333);
