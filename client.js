@@ -31,6 +31,7 @@ function FighterClient(username){
     var isTouchingUp = false;
     var isTouchingDown = false;
     var myName = username;
+    var joystick;
 
     /*
      * private method: showMessage(location, msg)
@@ -43,7 +44,7 @@ function FighterClient(username){
      * being shown.
      */
 
-    function showMessage(location, msg) {
+     function showMessage(location, msg) {
         document.getElementById(location).innerHTML = msg; 
     }
 
@@ -58,7 +59,7 @@ function FighterClient(username){
      * existing messages.  A timestamp prefix is added
      * to the message displayed.
      */
-    function appendMessage(location, msg) {
+     function appendMessage(location, msg) {
         var prev_msgs = document.getElementById(location).innerHTML;
         document.getElementById(location).innerHTML = "[" + new Date().toString() + "] " + msg + "<br />" + prev_msgs;
     }
@@ -70,7 +71,7 @@ function FighterClient(username){
      * to the server, after converting the structure into
      * a string.
      */
-    function sendToServer(msg) {
+     function sendToServer(msg) {
         var date = new Date();
         var currentTime = date.getTime();
         msg["timestamp"] = currentTime;
@@ -78,65 +79,27 @@ function FighterClient(username){
     }
 
     function addController() {
-        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-            GameController.init({
-                left: {
-                    type: 'joystick',
-                    joystick: {
-                          touchEnd: function() {
-                            isTouchingUp = false;
-                            isTouchingDown = false;
-                            isTouchingRight = false;
-                            isTouchingLeft = false;
-                          },
-                          touchMove: function( details ) {
-                            if (details.dx > 0) {
-                                isTouchingLeft = false;
-                                isTouchingRight = true;
-                            } else if(details.dx < 0){
-                                isTouchingLeft = true;
-                                isTouchingRight = false;
-                            }
-                            if (details.dy > 0){
-                                isTouchingUp = true;
-                                isTouchingDown = false;
-                            } else if (details.dy < 0){
-                                isTouchingUp = false;
-                                isTouchingDown = true;
-                            }
-                            // console.log( details.dy );
-                            // console.log( details.max );
-                            // console.log( details.normalizedX );
-                            // console.log( details.normalizedY );
-                          }
-                        }
-                },
-                right: {
-                    position: {
-                        right: '5%'
-                    },
-                    type: 'buttons',
-                    buttons: [
-                    {
-                        label: 'Hit', fontsize: 13, touchStart: function() {
-                            isTouchingHit = true;
-                        }, touchEnd: function(){
-                            isTouchingHit = false;
-                        }
-                    },
-                    false, false, false
-                    ]
-                }
-            });
-        }
-    }
+        // if (VirtualJoystick.touchScreenAvailable()){
+
+        joystick    = new VirtualJoystick({
+            container           : document.getElementById('container'),
+            mouseSupport        : true,
+            limitStickTravel    : true
+        });
+                    joystick.addEventListener('touchStart', function(){
+                console.log('down')
+            })
+            joystick.addEventListener('touchEnd', function(){
+                console.log('up')
+            })
+}
     /*
      * private method: initNetwork(msg)
      *
      * Connects to the server and initialize the various
      * callbacks.
      */
-    function initNetwork() {
+     function initNetwork() {
         // Attempts to connect to game server
         try {
             $("#warning").hide();
@@ -146,41 +109,41 @@ function FighterClient(username){
                 switch (message.type) {
                     //created player
                     case "newPlayer":
-                        var pid = message.pid;
-                        var initX = message.x;
-                        var initY = message.y;
-                        var direction = message.direction;
-                        numOfPlayers = message.count+1;
-                        createPlayer(pid,initX,initY,direction);
-                        break;
+                    var pid = message.pid;
+                    var initX = message.x;
+                    var initY = message.y;
+                    var direction = message.direction;
+                    numOfPlayers = message.count+1;
+                    createPlayer(pid,initX,initY,direction);
+                    break;
                     //player disconnected
                     case "disconnected":
-                        deletePlayer(message.pid);
-                        break;
+                    deletePlayer(message.pid);
+                    break;
                     case "assign":
-                        connectedToServer = true;
-                        myPlayer = players[message.pid];
-                        myPID = message.pid;
-                        break;
+                    connectedToServer = true;
+                    myPlayer = players[message.pid];
+                    myPID = message.pid;
+                    break;
                     case "update":
-                        var id = message.pid;
-                        if (message.username){
-                            texts[id].text = message.username;
-                        }
-                        fighters[id].x = message.x;
-                        fighters[id].y = message.y;
-                        fighters[id].vx = message.vx;
-                        fighters[id].vy = message.vy;
-                        fighters[id].facingDirection = message.facingDirection;
-                        fighters[id].isHitting = message.isHitting;
-                        fighters[id].isInjured = message.injuryStatus;
-                        fighters[id].hp = message.hp;
-                        break;
+                    var id = message.pid;
+                    if (message.username){
+                        texts[id].text = message.username;
+                    }
+                    fighters[id].x = message.x;
+                    fighters[id].y = message.y;
+                    fighters[id].vx = message.vx;
+                    fighters[id].vy = message.vy;
+                    fighters[id].facingDirection = message.facingDirection;
+                    fighters[id].isHitting = message.isHitting;
+                    fighters[id].isInjured = message.injuryStatus;
+                    fighters[id].hp = message.hp;
+                    break;
                     case "updateVelocity":
-                        var t = message.timestamp;
-                        if (t < lastUpdateVelocityAt)
-                            break;
-                        var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
+                    var t = message.timestamp;
+                    if (t < lastUpdateVelocityAt)
+                        break;
+                    var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
                         // var real_distance = distance+100;
                         var real_distance = distance + Math.abs(message.ballVY * delay/Fighter.FRAME_RATE);
                         var coef = real_distance/distance;
@@ -194,21 +157,21 @@ function FighterClient(username){
                         ball.x = message.ballX;
                         ball.y = message.ballY;
                         break;
-                    case "outOfBound":
+                        case "outOfBound":
                         ball.reset();
                         myPaddle.reset();
                         opponentPaddle.reset();
                         break;
-                    default: 
+                        default: 
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
+                    }
                 }
+            } catch (e) {
+                console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
             }
-        } catch (e) {
-            console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
         }
-    }
 
-    function preload() {
+        function preload() {
         //for cropping the image
         frameWidth = 64;
         frameHeight = 65;
@@ -226,24 +189,25 @@ function FighterClient(username){
 
     }
 
+    function hitButtonPressed(){
+        console.log("hehe");
+    }
+
     function create() {
 
         // phaser physics world 
         game.physics.startSystem(Phaser.Physics.ARCADE);
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
- 
+
         //have the game centered horizontally
-     
+
         this.scale.pageAlignHorizontally = true;
-     
         this.scale.pageAlignVertically = true;
-     
-        //screen size will be set automatically
-     
         this.scale.setScreenSize(true);
 
+        //screen size will be set automatically
+
         //add button
-        //button = game.add.button(game.world.centerX - 95, 460, 'button', openWindow, this, 2, 1, 0);
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
@@ -328,7 +292,7 @@ function FighterClient(username){
     }
 
     function createPlayer(pid,x,y,direction) {
-        console.log(players);
+        // console.log(players);
         var p = players[pid];
         p.body.x = x;
         p.body.y = y;
@@ -353,7 +317,6 @@ function FighterClient(username){
     function renderGame(){
         //here is for rendering
         num_text.setText('# of players: '+ numOfPlayers);
-        console.log(players.length);
         for(var i=0;i<players.length;i++){
             var animaPlayed = false;
             var player = players[i];
@@ -447,15 +410,15 @@ function FighterClient(username){
                 injuryRecovered = false;
             }
             var facingDirection = myFighter.facingDirection;
-            if(cursors.up.isDown || isTouchingUp){
+            if(cursors.up.isDown || (joystick && joystick.up())){
                 vy = -150;
-            }else if(cursors.down.isDown || isTouchingDown){
+            }else if(cursors.down.isDown || (joystick && joystick.down())){
                 vy = 150;
             }
-            if (cursors.left.isDown || isTouchingLeft){
+            if (cursors.left.isDown || (joystick && joystick.left())){
                 vx = -150;
                 facingDirection = "left";
-            }else if (cursors.right.isDown || isTouchingRight){
+            }else if (cursors.right.isDown || (joystick && joystick.right())){
                 vx = 150;
                 facingDirection = "right";
             }
@@ -535,7 +498,7 @@ function FighterClient(username){
     }
 
     this.start = function (){
-        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
+        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
         setTimeout(function() {initNetwork();},1000);
     };
     // This will auto run after this script is loaded
