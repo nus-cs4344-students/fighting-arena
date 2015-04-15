@@ -79,22 +79,24 @@ function FighterClient(username){
     }
 
     function addController() {
-        // if (VirtualJoystick.touchScreenAvailable()){
+        if (VirtualJoystick.touchScreenAvailable()){
 
-        joystick    = new VirtualJoystick({
-            container           : document.getElementById('container'),
-            mouseSupport        : true,
-            limitStickTravel    : true
-        });
+            joystick    = new VirtualJoystick({
+                container           : document.getElementById('container'),
+                mouseSupport        : true,
+                limitStickTravel    : true
+            });
 
-        joystick.addEventListener('touchStart', function(event){
-            if(event.touches.length == 2){
-                isTouchingHit = true;
-            }
-        })
-        joystick.addEventListener('touchEnd', function(){
-            isTouchingHit = false;
-        })
+            joystick.addEventListener('touchStart', function(event){
+                if(event.touches.length == 2){
+                    isTouchingHit = true;
+                }
+            });
+            
+            joystick.addEventListener('touchEnd', function(){
+                isTouchingHit = false;
+            });
+    }
 }
     /*
      * private method: initNetwork(msg)
