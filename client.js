@@ -86,12 +86,15 @@ function FighterClient(username){
             mouseSupport        : true,
             limitStickTravel    : true
         });
-                    joystick.addEventListener('touchStart', function(){
-                console.log('down')
-            })
-            joystick.addEventListener('touchEnd', function(){
-                console.log('up')
-            })
+
+        joystick.addEventListener('touchStart', function(event){
+            if(event.touches.length == 2){
+                isTouchingHit = true;
+            }
+        })
+        joystick.addEventListener('touchEnd', function(){
+            isTouchingHit = false;
+        })
 }
     /*
      * private method: initNetwork(msg)
