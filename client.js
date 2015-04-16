@@ -2,22 +2,20 @@
 
 function FighterClient(username){
 
-    var socket;         // socket used to connect to server 
+    var socket;                     // socket used to connect to server 
     var cursors;
     var stars;
     var bullets;
     var fireRate = 100;
     var nextFire = 0;
     var maxPlayers = 20;
-    //var score = 0;
-    //var scoreText;
-    var currentWeapon = 0 ;
+    var currentWeapon = 0;
     var players = [];
     var fighters = [];
     var texts = [];
     var serverMsg;
     var hasPlayed = false;
-    var game ;
+    var game;
     var connectedToServer = false;
     var numOfPlayers = 0;
     var myPID;
@@ -29,9 +27,9 @@ function FighterClient(username){
     var isTouchingLeft = false;
     var isTouchingRight = false;
     var isTouchingUp = false;
-    var isTouchingDown = false;
-    var myName = username;
-    var joystick;
+    var isTouchingDown = false;     
+    var myName = username;          //username in the game
+    var joystick;                   //virtual joystick for touch screen
 
     /*
      * private method: showMessage(location, msg)
@@ -44,7 +42,7 @@ function FighterClient(username){
      * being shown.
      */
 
-     function showMessage(location, msg) {
+    function showMessage(location, msg) {
         document.getElementById(location).innerHTML = msg; 
     }
 
@@ -59,7 +57,7 @@ function FighterClient(username){
      * existing messages.  A timestamp prefix is added
      * to the message displayed.
      */
-     function appendMessage(location, msg) {
+    function appendMessage(location, msg) {
         var prev_msgs = document.getElementById(location).innerHTML;
         document.getElementById(location).innerHTML = "[" + new Date().toString() + "] " + msg + "<br />" + prev_msgs;
     }
@@ -71,7 +69,7 @@ function FighterClient(username){
      * to the server, after converting the structure into
      * a string.
      */
-     function sendToServer(msg) {
+    function sendToServer(msg) {
         var date = new Date();
         var currentTime = date.getTime();
         msg["timestamp"] = currentTime;
@@ -79,6 +77,7 @@ function FighterClient(username){
     }
 
     function addController() {
+
         if (VirtualJoystick.touchScreenAvailable()){
 
             joystick    = new VirtualJoystick({
@@ -96,8 +95,9 @@ function FighterClient(username){
             joystick.addEventListener('touchEnd', function(){
                 isTouchingHit = false;
             });
+        }
+
     }
-}
     /*
      * private method: initNetwork(msg)
      *
@@ -504,12 +504,9 @@ function FighterClient(username){
 
     this.start = function (){
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-        setTimeout(function() {initNetwork();},1000);
+        setTimeout(function() {initNetwork();}, Setting.START_DELAY);
     };
     // This will auto run after this script is loaded
-
-    // Run Client. Give leeway of 0.5 second for libraries to load
-    // vim:ts=4:sw=4:expandtab
 
 }
 
@@ -522,20 +519,24 @@ function dismissModal(){
 $( document ).ready(function() {
     $('#myModal').modal('show');
     $('#myModal').on('hidden.bs.modal', function (e) {
-        var username = $('#username').val().substring(0,15);
+
+        var username = $('#username').val().substring(0, Setting.MAX_NAME_LENGTH);
         var client = new FighterClient(username);
+
         if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
             //if mobile, check device orientation
-            if (Math.abs(window.orientation) === 90) {
-                setTimeout(function() {client.start();}, 500);
+            if (Math.abs(window.orientation) === Setting.LANDSCAPE_ORIENTATION) {
+                setTimeout(function() {client.start();}, Setting.START_DELAY);
             }
+
             $(window).on("orientationchange",function(event){
-                if(window.orientation === 90){
-                    setTimeout(function() {client.start();}, 500);
+                if(window.orientation === Setting.LANDSCAPE_ORIENTATION){
+                    setTimeout(function() {client.start();}, Setting.START_DELAY);
                 }
             });
+
         } else { //starts otherwise
-            setTimeout(function() {client.start();}, 500);
+            setTimeout(function() {client.start();}, Setting.START_DELAY);
         }
     })
 });

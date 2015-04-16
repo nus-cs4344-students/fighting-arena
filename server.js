@@ -27,6 +27,7 @@ function Server() {
     var gameInterval; // Interval variable used for gameLoop 
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
+    var rooms;
     var players;      // Associative array for players, indexed via socket ID
     var pidMap = {};
     /*
