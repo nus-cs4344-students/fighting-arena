@@ -12,7 +12,7 @@
  */
 
 // enforce strict/clean programming
-"use strict"; 
+"use strict";
 
 var LIB_PATH = "./";
 require(LIB_PATH + 'setting.js');
@@ -76,28 +76,28 @@ function Server() {
 
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
-        var randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
-        var randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
-        var direction = count%2!=1 ? "left" :  "right";
+        var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
+        var direction = count % 2 != 1 ? "left" : "right";
 
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY);
         sockets[conn.id] = conn;
         pidMap[nextPID] = true;
 
-        unicast(conn,{type:"assign",pid:nextPID});
+        unicast(conn, {type: "assign", pid: nextPID});
         broadcast({
             type: "newPlayer",
             count: count,
-            pid:nextPID,
+            pid: nextPID,
             x: randomX,
             y: randomY,
             direction: direction,
         });
         //count actually has same function as nextPID;
         count++;
-        console.log("Now we have " +count+" players");
-        for(var i=0;i<20;i++){
-            if(!(i in pidMap)){
+        console.log("Now we have " + count + " players");
+        for (var i = 0; i < 20; i++) {
+            if (!(i in pidMap)) {
                 nextPID = i;
             }
         }
@@ -106,34 +106,34 @@ function Server() {
 
     var gameLoop = function () {
         // Check if ball is moving
-            var id;
-            for (id in players){
-                var p = players[id];
-                // Update on player side
-                var xx = p.fighter.x;
-                var yy = p.fighter.y;
-                var vx = p.fighter.vx;
-                var vy = p.fighter.vy;
-                //console.log(p.fighter.isHitting+p.fighter.facingDirection);
-                var date = new Date();
-                var currentTime = date.getTime();
-                var states = {
-                    type: "update",
-                    timestamp: currentTime,
-                    x:xx,
-                    y:yy,
-                    vx: vx,
-                    vy: vy,
-                    pid: p.pid,
-                    hp: p.fighter.hp,
-                    status: p.fighter.status,
-                    injuryStatus: p.fighter.isInjured,
-                    isHitting: p.fighter.isHitting,
-                    facingDirection: p.fighter.facingDirection,
-                    username: p.username
-                };
-                broadcast(states);
-            }
+        var id;
+        for (id in players) {
+            var p = players[id];
+            // Update on player side
+            var xx = p.fighter.x;
+            var yy = p.fighter.y;
+            var vx = p.fighter.vx;
+            var vy = p.fighter.vy;
+            //console.log(p.fighter.isHitting+p.fighter.facingDirection);
+            var date = new Date();
+            var currentTime = date.getTime();
+            var states = {
+                type: "update",
+                timestamp: currentTime,
+                x: xx,
+                y: yy,
+                vx: vx,
+                vy: vy,
+                pid: p.pid,
+                hp: p.fighter.hp,
+                status: p.fighter.status,
+                injuryStatus: p.fighter.isInjured,
+                isHitting: p.fighter.isHitting,
+                facingDirection: p.fighter.facingDirection,
+                username: p.username
+            };
+            broadcast(states);
+        }
     };
 
     /*
@@ -154,20 +154,22 @@ function Server() {
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
-                if(count>19){
-                    unicast(conn,{type:"full",message:"There are already 20 players playing"});
+                if (count > 19) {
+                    unicast(conn, {type: "full", message: "There are already 20 players playing"});
                     return;
                 }
                 //create new player and brodcast it 
                 newPlayer(conn);
 
-                if (gameInterval == undefined){
-                    gameInterval = setInterval(function() {gameLoop();}, 1000/Setting.FRAME_RATE);
+                if (gameInterval == undefined) {
+                    gameInterval = setInterval(function () {
+                        gameLoop();
+                    }, 1000 / Setting.FRAME_RATE);
                 }
 
                 // When the client closes the connection to the server/closes the window
                 conn.on('close', function () {
-                    if(count===0)
+                    if (count === 0)
                         reset();
 
                     // Decrease player counter
@@ -180,7 +182,7 @@ function Server() {
                     delete players[conn.id];
                     delete pidMap[nextPID];
 
-                    broadcast({type:"disconnected", pid:nextPID});
+                    broadcast({type: "disconnected", pid: nextPID});
 
                     console.log("disconnected");
                 });
@@ -215,11 +217,11 @@ function Server() {
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
                             // determine whether have collision with other players
                             var id;
-                            if(p.fighter.isHitting){
-                                for(id in players){
+                            if (p.fighter.isHitting) {
+                                for (id in players) {
                                     var opponent = players[id];
-                                    if(id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
-                                        if(p.fighter.facingDirection == 'right'){
+                                    if (id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured) {
+                                        if (p.fighter.facingDirection == 'right') {
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             //console.log(tOFRight);
                                             var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
@@ -228,17 +230,17 @@ function Server() {
                                             //console.log(tOFTop);
                                             var tOFBtm = (opponent.fighter.y - 0.5 * Fighter.HEIGHT);
                                             //console.log(tOFBtm);
-                                            if(p.fighter.x <= tOFRight && p.fighter.x >= tOFLeft && p.fighter.y <= tOFTop && p.fighter.y >= tOFBtm){
+                                            if (p.fighter.x <= tOFRight && p.fighter.x >= tOFLeft && p.fighter.y <= tOFTop && p.fighter.y >= tOFBtm) {
                                                 opponent.fighter.getHitted(10);
                                                 //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
                                             }
                                         }
-                                        else if(p.fighter.facingDirection == 'left'){
-                                            if(p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
+                                        else if (p.fighter.facingDirection == 'left') {
+                                            if (p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
                                                 && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
-                                                && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)){
+                                                && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)) {
                                                 //player.fighter.getHitted(HITPOINT_NORMAL);
                                                 //console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.getHitted(10);
@@ -261,17 +263,17 @@ function Server() {
             gameInterval = undefined;
             players = new Object;
             sockets = new Object;
-            
+
             // Standard code to starts the Pong server and listen
             // for connection
             var app = express();
             var httpServer = http.createServer(app);
-            sock.installHandlers(httpServer, {prefix:'/fighter'});
+            sock.installHandlers(httpServer, {prefix: '/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
             console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
-            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " + 
-             "browser to start the game");
+            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " +
+            "browser to start the game");
 
         } catch (e) {
             console.log("Cannot listen to " + 3333);

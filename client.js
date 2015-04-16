@@ -1,6 +1,6 @@
 // private variables
 
-function FighterClient(username){
+function FighterClient(username) {
 
     var socket;                     // socket used to connect to server 
     var cursors;
@@ -27,7 +27,7 @@ function FighterClient(username){
     var isTouchingLeft = false;
     var isTouchingRight = false;
     var isTouchingUp = false;
-    var isTouchingDown = false;     
+    var isTouchingDown = false;
     var myName = username;          //username in the game
     var joystick;                   //virtual joystick for touch screen
 
@@ -43,7 +43,7 @@ function FighterClient(username){
      */
 
     function showMessage(location, msg) {
-        document.getElementById(location).innerHTML = msg; 
+        document.getElementById(location).innerHTML = msg;
     }
 
     /*
@@ -78,33 +78,34 @@ function FighterClient(username){
 
     function addController() {
 
-        if (VirtualJoystick.touchScreenAvailable()){
+        if (VirtualJoystick.touchScreenAvailable()) {
 
-            joystick    = new VirtualJoystick({
-                container           : document.getElementById('container'),
-                mouseSupport        : true,
-                limitStickTravel    : true
+            joystick = new VirtualJoystick({
+                container: document.getElementById('container'),
+                mouseSupport: true,
+                limitStickTravel: true
             });
 
-            joystick.addEventListener('touchStart', function(event){
-                if(event.touches.length == 2){
+            joystick.addEventListener('touchStart', function (event) {
+                if (event.touches.length == 2) {
                     isTouchingHit = true;
                 }
             });
-            
-            joystick.addEventListener('touchEnd', function(){
+
+            joystick.addEventListener('touchEnd', function () {
                 isTouchingHit = false;
             });
         }
 
     }
+
     /*
      * private method: initNetwork(msg)
      *
      * Connects to the server and initialize the various
      * callbacks.
      */
-     function initNetwork() {
+    function initNetwork() {
         // Attempts to connect to game server
         try {
             $("#warning").hide();
@@ -114,44 +115,44 @@ function FighterClient(username){
                 switch (message.type) {
                     //created player
                     case "newPlayer":
-                    var pid = message.pid;
-                    var initX = message.x;
-                    var initY = message.y;
-                    var direction = message.direction;
-                    numOfPlayers = message.count+1;
-                    createPlayer(pid,initX,initY,direction);
-                    break;
+                        var pid = message.pid;
+                        var initX = message.x;
+                        var initY = message.y;
+                        var direction = message.direction;
+                        numOfPlayers = message.count + 1;
+                        createPlayer(pid, initX, initY, direction);
+                        break;
                     //player disconnected
                     case "disconnected":
-                    deletePlayer(message.pid);
-                    break;
-                    case "assign":
-                    connectedToServer = true;
-                    myPlayer = players[message.pid];
-                    myPID = message.pid;
-                    break;
-                    case "update":
-                    var id = message.pid;
-                    if (message.username){
-                        texts[id].text = message.username;
-                    }
-                    fighters[id].x = message.x;
-                    fighters[id].y = message.y;
-                    fighters[id].vx = message.vx;
-                    fighters[id].vy = message.vy;
-                    fighters[id].facingDirection = message.facingDirection;
-                    fighters[id].isHitting = message.isHitting;
-                    fighters[id].isInjured = message.injuryStatus;
-                    fighters[id].hp = message.hp;
-                    break;
-                    case "updateVelocity":
-                    var t = message.timestamp;
-                    if (t < lastUpdateVelocityAt)
+                        deletePlayer(message.pid);
                         break;
-                    var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
+                    case "assign":
+                        connectedToServer = true;
+                        myPlayer = players[message.pid];
+                        myPID = message.pid;
+                        break;
+                    case "update":
+                        var id = message.pid;
+                        if (message.username) {
+                            texts[id].text = message.username;
+                        }
+                        fighters[id].x = message.x;
+                        fighters[id].y = message.y;
+                        fighters[id].vx = message.vx;
+                        fighters[id].vy = message.vy;
+                        fighters[id].facingDirection = message.facingDirection;
+                        fighters[id].isHitting = message.isHitting;
+                        fighters[id].isInjured = message.injuryStatus;
+                        fighters[id].hp = message.hp;
+                        break;
+                    case "updateVelocity":
+                        var t = message.timestamp;
+                        if (t < lastUpdateVelocityAt)
+                            break;
+                        var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
                         // var real_distance = distance+100;
-                        var real_distance = distance + Math.abs(message.ballVY * delay/Fighter.FRAME_RATE);
-                        var coef = real_distance/distance;
+                        var real_distance = distance + Math.abs(message.ballVY * delay / Fighter.FRAME_RATE);
+                        var coef = real_distance / distance;
                         var real_vy = message.ballVY * coef;
                         // var real_vy = message.ballVY;
                         lastUpdateVelocityAt = t;
@@ -162,21 +163,21 @@ function FighterClient(username){
                         ball.x = message.ballX;
                         ball.y = message.ballY;
                         break;
-                        case "outOfBound":
+                    case "outOfBound":
                         ball.reset();
                         myPaddle.reset();
                         opponentPaddle.reset();
                         break;
-                        default: 
+                    default:
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
-                    }
                 }
-            } catch (e) {
-                console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
             }
+        } catch (e) {
+            console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
         }
+    }
 
-        function preload() {
+    function preload() {
         //for cropping the image
         frameWidth = 64;
         frameHeight = 65;
@@ -190,11 +191,11 @@ function FighterClient(username){
         game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
         //-1 is for frameMax 5 is for margin, 0 for spacing
         //game.load.spritesheet('louis','assets/louis.png',frameWidth, frameHeight, -1,1,0);
-        game.load.spritesheet('louis','assets/characters/louis_lowres.png',32, 32.5, -1,0.5,0);
+        game.load.spritesheet('louis', 'assets/characters/louis_lowres.png', 32, 32.5, -1, 0.5, 0);
 
     }
 
-    function hitButtonPressed(){
+    function hitButtonPressed() {
         console.log("hehe");
     }
 
@@ -216,14 +217,14 @@ function FighterClient(username){
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
-        
-        for(var i=0;i<maxPlayers;i++){
-            randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
-            randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
+
+        for (var i = 0; i < maxPlayers; i++) {
+            randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+            randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
 
-            newPlayer.scale.setTo(2,2);
+            newPlayer.scale.setTo(2, 2);
             newHp.scale.setTo(hitpointBarScale, hitpointBarScale);
 
             //  enable physics on player
@@ -235,19 +236,19 @@ function FighterClient(username){
             newHp.body.collideWorldBounds = true;
 
             //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
-            newPlayer.animations.add('rightWalk', [13,14,15,16], 10, true);
-            newPlayer.animations.add('leftWalk', [7,6,5,4,3], 10, true);
-            newPlayer.animations.add('leftHit',[28,27,26,25,24,23,22,21,20],10,true);
-            newPlayer.animations.add('rightHit',[29,30,31,32,33,34,35,36,37],10,true);
-            newPlayer.animations.add('rightHitted',[63,64,65,66,67,67,67,68,69,69,69,69,69],8,false);
-            newPlayer.animations.add('leftHitted',[62,61,60,59,58,58,58,57,56,56,56,56,56],8,false);
+            newPlayer.animations.add('rightWalk', [13, 14, 15, 16], 10, true);
+            newPlayer.animations.add('leftWalk', [7, 6, 5, 4, 3], 10, true);
+            newPlayer.animations.add('leftHit', [28, 27, 26, 25, 24, 23, 22, 21, 20], 10, true);
+            newPlayer.animations.add('rightHit', [29, 30, 31, 32, 33, 34, 35, 36, 37], 10, true);
+            newPlayer.animations.add('rightHitted', [63, 64, 65, 66, 67, 67, 67, 68, 69, 69, 69, 69, 69], 8, false);
+            newPlayer.animations.add('leftHitted', [62, 61, 60, 59, 58, 58, 58, 57, 56, 56, 56, 56, 56], 8, false);
             newPlayer.frame = 9;
             players[i] = newPlayer;
             hitpointSprite[i] = newHp;
             fighters[i] = new Fighter(randomX, randomY, 0);
             newPlayer.visible = false;
             newHp.visible = false;
-            var tt = game.add.text(16, 16, '', { fontSize: '20px', fill: '#FFF' });
+            var tt = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
             tt.anchor.set(0.5);
             texts[i] = tt;
             tt.visible = false;
@@ -260,8 +261,7 @@ function FighterClient(username){
         stars.enableBody = true;
 
         //  Here we'll create 12 of them evenly spaced apart
-        for (var j = 0; j < 12; j++)
-        {
+        for (var j = 0; j < 12; j++) {
             //  Create a star inside of the 'stars' group
             var star = stars.create(j * 70, 0, 'star');
 
@@ -271,7 +271,7 @@ function FighterClient(username){
             //  This just gives each star a slightly random bounce value
             star.body.bounce.y = 0.7 + Math.random() * 0.2;
 
-            if(i==3) starX = star;
+            if (i == 3) starX = star;
         }
 
         bullets = game.add.group();
@@ -284,7 +284,7 @@ function FighterClient(username){
         bullets.setAll('checkWorldBounds', true);
 
         //  The # of players
-        num_text = game.add.text(16, 16, '# of players: '+ numOfPlayers, { fontSize: '16px', fill: '#000' });
+        num_text = game.add.text(16, 16, '# of players: ' + numOfPlayers, {fontSize: '16px', fill: '#000'});
 
         //  Our controls.
         cursors = game.input.keyboard.createCursorKeys();
@@ -296,7 +296,7 @@ function FighterClient(username){
         addController();
     }
 
-    function createPlayer(pid,x,y,direction) {
+    function createPlayer(pid, x, y, direction) {
         // console.log(players);
         var p = players[pid];
         p.body.x = x;
@@ -305,24 +305,24 @@ function FighterClient(username){
         fighters[pid].y = y;
         fighters[pid].facingDirection = direction;
         p.visible = true;
-        console.log("created player of "+pid);
-        console.log("local postion updated"+x+" "+" "+y);
+        console.log("created player of " + pid);
+        console.log("local postion updated" + x + " " + " " + y);
         sendToServer({
-            type:"newPlayer",
+            type: "newPlayer",
             username: myName
         });
 
     }
 
-    function deletePlayer(pid){
-        console.log("deleted player of "+pid);
+    function deletePlayer(pid) {
+        console.log("deleted player of " + pid);
         players[pid].visible = false;
     }
 
-    function renderGame(){
+    function renderGame() {
         //here is for rendering
-        num_text.setText('# of players: '+ numOfPlayers);
-        for(var i=0;i<players.length;i++){
+        num_text.setText('# of players: ' + numOfPlayers);
+        for (var i = 0; i < players.length; i++) {
             var animaPlayed = false;
             var player = players[i];
             var fighter = fighters[i];
@@ -336,8 +336,8 @@ function FighterClient(username){
             texts[i].visible = true;
             texts[i].x = fighters[i].x + 22;
             texts[i].y = fighters[i].y - 8;
-            
-            if(i!==myPID){
+
+            if (i !== myPID) {
                 player.body.x = fighter.x;
                 player.body.y = fighter.y;
                 healthBar.body.x = fighter.x;
@@ -347,7 +347,7 @@ function FighterClient(username){
             //console.log(fighters[i].hp);
             //console.log(fighters[i].isInjured);
             //console.log(vx+"vy:"+vy);
-            if(vx!==undefined && vy!==undefined){
+            if (vx !== undefined && vy !== undefined) {
                 player.visible = true;
                 healthBar.visible = true;
                 player.body.velocity.x = 0;
@@ -355,33 +355,35 @@ function FighterClient(username){
                 healthBar.body.velocity.x = 0;
                 healthBar.body.velocity.y = 0;
 
-                if(hp <= 0){
+                if (hp <= 0) {
                     player.animations.stop();
-                    player.frame = direction==="right"?57:68;
+                    player.frame = direction === "right" ? 57 : 68;
                 }
-                else{
+                else {
 
-                    if(isInjured){
-                        if(direction==="left"){
+                    if (isInjured) {
+                        if (direction === "left") {
                             player.animations.play('leftHitted');
-                        }else if(direction==="right"){
+                        } else if (direction === "right") {
                             player.animations.play('rightHitted');
                         }
-                        setTimeout(function() {injuryRecovered=true;}, 1100);
-                    }else if(isHitting){
-                        if(direction==="left"){
+                        setTimeout(function () {
+                            injuryRecovered = true;
+                        }, 1100);
+                    } else if (isHitting) {
+                        if (direction === "left") {
                             player.animations.play('leftHit');
-                        }else if(direction==="right"){
+                        } else if (direction === "right") {
                             player.animations.play('rightHit');
                         }
-                    }else{
-                        if(vx>0){
+                    } else {
+                        if (vx > 0) {
                             player.animations.play("rightWalk");
-                        }else if(vx<0){
+                        } else if (vx < 0) {
                             player.animations.play("leftWalk");
-                        }else{
+                        } else {
                             player.animations.stop();
-                            player.frame = direction==="left"?9:10;
+                            player.frame = direction === "left" ? 9 : 10;
                         }
                         healthBar.body.velocity.x = vx;
                         healthBar.body.velocity.y = vy;
@@ -390,7 +392,7 @@ function FighterClient(username){
                         player.body.velocity.y = vy;
                     }
                 }
-                if(hp>=0)
+                if (hp >= 0)
                     healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
             }
         }
@@ -407,59 +409,58 @@ function FighterClient(username){
         var vy = 0;
         var isHitting = false;
 
-        if(connectedToServer){
+        if (connectedToServer) {
             var myPlayer = players[myPID];
             var myFighter = fighters[myPID];
-            if(injuryRecovered){
+            if (injuryRecovered) {
                 myFighter.isInjured = false;
                 injuryRecovered = false;
             }
             var facingDirection = myFighter.facingDirection;
-            if(cursors.up.isDown || (joystick && joystick.up())){
+            if (cursors.up.isDown || (joystick && joystick.up())) {
                 vy = -150;
-            }else if(cursors.down.isDown || (joystick && joystick.down())){
+            } else if (cursors.down.isDown || (joystick && joystick.down())) {
                 vy = 150;
             }
-            if (cursors.left.isDown || (joystick && joystick.left())){
+            if (cursors.left.isDown || (joystick && joystick.left())) {
                 vx = -150;
                 facingDirection = "left";
-            }else if (cursors.right.isDown || (joystick && joystick.right())){
+            } else if (cursors.right.isDown || (joystick && joystick.right())) {
                 vx = 150;
                 facingDirection = "right";
             }
-            if(this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit){
-                isHitting= true;
+            if (this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit) {
+                isHitting = true;
             }
             var healthBar = hitpointSprite[myPID];
 
-            if(myPlayer.body.y<300 || healthBar.body.y<300){
+            if (myPlayer.body.y < 300 || healthBar.body.y < 300) {
                 myPlayer.body.y = 300;
                 healthBar.body.y = 300;
             }
-            if(myFighter.hp > 0){
+            if (myFighter.hp > 0) {
                 sendToServer({
-                    type:"move",
-                    x:myPlayer.body.x,
-                    y:myPlayer.body.y,
-                    vx:vx,
-                    vy:vy,
+                    type: "move",
+                    x: myPlayer.body.x,
+                    y: myPlayer.body.y,
+                    vx: vx,
+                    vy: vy,
                 });
 
                 sendToServer({
-                    type:"attack",
-                    isInjured:myFighter.isInjured,
-                    isHitting:isHitting,
-                    facingDirection:facingDirection
+                    type: "attack",
+                    isInjured: myFighter.isInjured,
+                    isHitting: isHitting,
+                    facingDirection: facingDirection
                 });
             }
         }
-        
+
     }
 
-    function fire () {
+    function fire() {
 
-        if (game.time.now > nextFire && bullets.countDead() > 0)
-        {
+        if (game.time.now > nextFire && bullets.countDead() > 0) {
             nextFire = game.time.now + fireRate;
 
             var bullet = bullets.getFirstExists(false);
@@ -469,23 +470,23 @@ function FighterClient(username){
             //bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
             x = 1000;
             y = player.y;
-            speed=700;
+            speed = 700;
             maxTime = 500;
-            bullet.rotation = game.physics.arcade.moveToXY(bullet,x,y,speed,maxTime);
+            bullet.rotation = game.physics.arcade.moveToXY(bullet, x, y, speed, maxTime);
         }
 
     }
 
-    function hitOpponent(player,opponent) {
+    function hitOpponent(player, opponent) {
         opponentStatus = -1;
-        console.log(hasPlayed,playerStatus,opponentStatus);
-        if(!hasPlayed && playerStatus==1 && opponentStatus==-1){
+        console.log(hasPlayed, playerStatus, opponentStatus);
+        if (!hasPlayed && playerStatus == 1 && opponentStatus == -1) {
             opponent.animations.play('leftHitted');
-            opponent.body.x+=20;
-            playerStatus=0;
-            opponentStatus=0;
+            opponent.body.x += 20;
+            playerStatus = 0;
+            opponentStatus = 0;
             hasPlayed = true;
-        }else{
+        } else {
             opponent.animations.stop();
             hasPlayed = false;
         }
@@ -502,41 +503,53 @@ function FighterClient(username){
 
     }
 
-    this.start = function (){
-        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-        setTimeout(function() {initNetwork();}, Setting.START_DELAY);
+    this.start = function () {
+        game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', {
+            preload: preload,
+            create: create,
+            update: update
+        });
+        setTimeout(function () {
+            initNetwork();
+        }, Setting.START_DELAY);
     };
     // This will auto run after this script is loaded
 
 }
 
-function dismissModal(){
-    if($('#username').val()){
+function dismissModal() {
+    if ($('#username').val()) {
         $('#myModal').modal('hide');
     }
 }
 
-$( document ).ready(function() {
+$(document).ready(function () {
     $('#myModal').modal('show');
     $('#myModal').on('hidden.bs.modal', function (e) {
 
         var username = $('#username').val().substring(0, Setting.MAX_NAME_LENGTH);
         var client = new FighterClient(username);
 
-        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             //if mobile, check device orientation
             if (Math.abs(window.orientation) === Setting.LANDSCAPE_ORIENTATION) {
-                setTimeout(function() {client.start();}, Setting.START_DELAY);
+                setTimeout(function () {
+                    client.start();
+                }, Setting.START_DELAY);
             }
 
-            $(window).on("orientationchange",function(event){
-                if(window.orientation === Setting.LANDSCAPE_ORIENTATION){
-                    setTimeout(function() {client.start();}, Setting.START_DELAY);
+            $(window).on("orientationchange", function (event) {
+                if (window.orientation === Setting.LANDSCAPE_ORIENTATION) {
+                    setTimeout(function () {
+                        client.start();
+                    }, Setting.START_DELAY);
                 }
             });
 
         } else { //starts otherwise
-            setTimeout(function() {client.start();}, Setting.START_DELAY);
+            setTimeout(function () {
+                client.start();
+            }, Setting.START_DELAY);
         }
     })
 });
