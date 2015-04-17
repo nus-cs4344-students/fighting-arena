@@ -203,9 +203,11 @@ function Server() {
                         lid: p.lid,
                         lastHit:p.lastHit
                     };
-                    unicast(_sockets[myid],states);
+                    //broadcast(states, p.lid);
+                    if(p.lid===myPlayer.lid)
+                        unicast(_sockets[myid],states);
                 }   
-                //broadcast(states, p.lid);
+                
             }
         }
         
