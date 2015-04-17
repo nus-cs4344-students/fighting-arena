@@ -4,6 +4,16 @@
 function musicPlayer() {
     var isPlaying = false;
     var music = new Audio('./music/bgm.mp3');
+    var haste = new Audio('./music/haste.mp3');
+    var regen = new Audio('./music/regen.mp3');
+
+    this.playHaste = function (){
+       haste.play();
+    };
+
+    this.playRegen = function (){
+        regen.play();
+    };
 
     this.play = function () {
         $(window).on("blur focus", function (e) {

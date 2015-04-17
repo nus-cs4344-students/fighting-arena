@@ -142,8 +142,8 @@ function Server() {
             }, 15000);
 
             hpRuneInterval = setInterval(function () {
-                var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
-                var randomY = (Math.random() * (Setting.HEIGHT - 350)) + 300;
+                var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
+                var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + Setting.BLOCK_Y+1;
                 var runeName = helper.randomLobbyId([]);
                 var rune = new Rune('hp', randomX, randomY);
                 rune.name = runeName;
@@ -321,6 +321,11 @@ function Server() {
                                         type: 'runeDisappear',
                                         rtype: 'hp'
                                     }, p.lid);
+
+                                    unicast(conn,{
+                                        type: 'collectRune',
+                                        rtype: 'hp'
+                                    });
                                     lobby.hasteRune.name = undefined;
                                     p.addRune(lobby.hpRune);
                                 }
@@ -341,6 +346,13 @@ function Server() {
                                         type: 'runeDisappear',
                                         rtype: 'haste'
                                     }, p.lid);
+
+                                    unicast(conn,{
+                                        type: 'collectRune',
+                                        rtype: 'haste'
+                                    });
+
+                                    lobby.hasteRune.name = undefined;
                                     lobby.hasteRune.name = undefined;
                                     lobby.hasteRune.collected_at = new Date();
                                     p.addRune(lobby.hasteRune);

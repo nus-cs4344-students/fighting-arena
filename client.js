@@ -147,8 +147,15 @@ function FighterClient(username) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
                     //created player
+                    case "collectRune":
+                        if (message.rtype === 'haste') {
+                            mPlayer.playHaste();
+                        } else {
+                            mPlayer.playRegen();
+                        }
+                        break;
                     case "runeDisappear":
-                        if (message.rtype === 'haste'){
+                        if (message.rtype === 'haste') {
                             hasteRune.visible = false;
                             delete hasteRune.name;
                         } else {
@@ -166,6 +173,7 @@ function FighterClient(username) {
                             hasteRune.x = x;
                             hasteRune.y = y;
                         } else {
+                            console.log("hp rune");
                             hpRune['name'] = name;
                             hpRune.x = x;
                             hpRune.y = y;
@@ -195,7 +203,7 @@ function FighterClient(username) {
                         break;
                     case "update":
                         var id = message.pid;
-                        if(deletedPlayers[id]){
+                        if (deletedPlayers[id]) {
                             resumePlayer(id);
                         }
                         if (message.username) {
@@ -215,7 +223,7 @@ function FighterClient(username) {
                         fighters[id].hasteCoef = message.hasteCoef;
                         break;
                     case "outOfInterest":
-                        if(!deletedPlayers[message.pid])
+                        if (!deletedPlayers[message.pid])
                             deletePlayer(message.pid);
                         break;
                     default:
@@ -266,8 +274,8 @@ function FighterClient(username) {
         //add button
 
         // add background
-        game.add.tileSprite(0, 0, Setting.FULL_WIDTH,Setting.HEIGHT, 'background');
-        game.world.setBounds(0,0,Setting.FULL_WIDTH,Setting.HEIGHT);
+        game.add.tileSprite(0, 0, Setting.FULL_WIDTH, Setting.HEIGHT, 'background');
+        game.world.setBounds(0, 0, Setting.FULL_WIDTH, Setting.HEIGHT);
 
         for (var i = 0; i < 2; i++) {
             var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
@@ -281,9 +289,9 @@ function FighterClient(username) {
             }
         }
 
-        for(var i=0;i<maxPlayers;i++){
-            randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
-            randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
+        for (var i = 0; i < maxPlayers; i++) {
+            randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+            randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
@@ -316,7 +324,6 @@ function FighterClient(username) {
 
             var tt = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
             var height = 10 * i;
-            console.log(height);
             var score = game.add.text(100, height, '', {fontSize: '20px', fill: '#FFF'});
 
             tt.anchor.set(0.5);
@@ -326,9 +333,8 @@ function FighterClient(username) {
             score.anchor.set(1, 1);
             score.visible = false;
             tt.visible = false;
-            deletedPlayers[i]=false;
+            deletedPlayers[i] = false;
         }
-
 
 
         //  The # of players
@@ -395,7 +401,7 @@ function FighterClient(username) {
         }
 
         for (var i = 0; i < players.length; i++) {
-            if(deletedPlayers[i]) continue;
+            if (deletedPlayers[i]) continue;
 
             var animaPlayed = false;
             var player = players[i];
@@ -517,8 +523,8 @@ function FighterClient(username) {
                 myPlayer.body.y = block_y;
                 healthBar.body.y = block_y;
             }
-            if (healthBar.body.y > Setting.HEIGHT-Fighter.HEIGHT*2) {
-                healthBar.body.y = Setting.HEIGHT-Fighter.HEIGHT*2;
+            if (healthBar.body.y > Setting.HEIGHT - Fighter.HEIGHT * 2) {
+                healthBar.body.y = Setting.HEIGHT - Fighter.HEIGHT * 2;
             }
             if (myFighter.hp > 0) {
                 sendToServer({
@@ -579,7 +585,7 @@ function FighterClient(username) {
             create: create,
             update: update
         });
-        //mPlayer.play();
+        mPlayer.play();
         if (action === 'create') {
             setTimeout(function () {
                 sendToServer({
