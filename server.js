@@ -316,7 +316,7 @@ function Server() {
                                 var ry1 = lobby.hpRune.y;
                                 var ry2 = lobby.hpRune.y + Rune.HEIGHT;
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
-                                    // collide with hpRune
+                                    lobby.hasteRune.name = undefined;
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'hp'
@@ -326,7 +326,6 @@ function Server() {
                                         type: 'collectRune',
                                         rtype: 'hp'
                                     });
-                                    lobby.hasteRune.name = undefined;
                                     p.addRune(lobby.hpRune);
                                 }
                             }
@@ -341,6 +340,8 @@ function Server() {
                                 var ry2 = lobby.hasteRune.y + Rune.HEIGHT;
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
                                     // collide with hasteRune
+                                    lobby.hasteRune.name = undefined;
+
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'haste'
@@ -351,8 +352,6 @@ function Server() {
                                         rtype: 'haste'
                                     });
 
-                                    lobby.hasteRune.name = undefined;
-                                    lobby.hasteRune.name = undefined;
                                     lobby.hasteRune.collected_at = new Date();
                                     p.addRune(lobby.hasteRune);
                                 }
