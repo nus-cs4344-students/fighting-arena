@@ -7,6 +7,7 @@ function FighterClient(username) {
     var stars;
     var bullets;
     var fireRate = 100;
+    var block_y = 120;
     var nextFire = 0;
     var maxPlayers = 20;
     var currentWeapon = 0;
@@ -24,6 +25,7 @@ function FighterClient(username) {
     var injuryRecovered = false;
     var hitpointSprite = [];
     var scoreTexts = [];
+    var deletedPlayers = {};
     var fullHP = 1000;
     var hitpointBarScale = 0.35;
     var isTouchingHit = false;
@@ -184,6 +186,7 @@ function FighterClient(username) {
                     //player disconnected
                     case "disconnected":
                         deletePlayer(message.pid);
+
                         break;
                     case "assign":
                         connectedToServer = true;
@@ -192,6 +195,7 @@ function FighterClient(username) {
                         break;
                     case "update":
                         var id = message.pid;
+                        //deletedPlayers[id] = false;
                         if (message.username) {
                             texts[id].text = message.username;
                             scoreTexts[id].setText(message.username + ": " + message.lastHit);
@@ -227,6 +231,7 @@ function FighterClient(username) {
         game.load.image('sky', 'assets/back08.jpg');
         game.load.image('haste', 'assets/haste.png');
         game.load.image('hpRune', 'assets/hpRune.png');
+        game.load.image('background', 'assets/background.jpg');
         //game.load.image('sky', 'assets/sky.png');
         game.load.image('ground', 'assets/platform.png');
         game.load.image('star', 'assets/star.png');
@@ -255,6 +260,7 @@ function FighterClient(username) {
         //add button
 
         // add sky 
+<<<<<<< HEAD
         game.add.sprite(0, 0, 'sky');
 
         for (var i = 0; i < 2; i++) {
@@ -272,6 +278,13 @@ function FighterClient(username) {
         for (var i = 0; i < maxPlayers; i++) {
             var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
             var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
+=======
+        game.add.tileSprite(0, 0, 2982,Setting.HEIGHT, 'background');
+        game.world.setBounds(0,0,2982,Setting.HEIGHT);
+        for(var i=0;i<maxPlayers;i++){
+            randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
+            randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
+>>>>>>> b4dc30222502e7c3709cf1c02b081604f3f7adfa
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
@@ -314,6 +327,11 @@ function FighterClient(username) {
             score.anchor.set(1, 1);
             score.visible = false;
             tt.visible = false;
+<<<<<<< HEAD
+=======
+            deletedPlayers[i]=false;
+
+>>>>>>> b4dc30222502e7c3709cf1c02b081604f3f7adfa
         }
 
 
@@ -334,6 +352,7 @@ function FighterClient(username) {
     function createPlayer(pid, x, y, direction, llid) {
         // console.log(players);
         var p = players[pid];
+        deletedPlayers[pid] = false;
         p.body.x = x;
         p.body.y = y;
         fighters[pid].x = x;
@@ -354,6 +373,11 @@ function FighterClient(username) {
         console.log("deleted player of " + pid);
         console.log(players[pid]);
         players[pid].visible = false;
+        scoreTexts[pid].visible = false;
+        hitpointSprite[pid].visible = false;
+        texts[pid].visible = false;
+        deletedPlayers[pid] = true;
+        numOfPlayers--;
     }
 
     function renderGame() {
@@ -367,6 +391,8 @@ function FighterClient(username) {
         }
 
         for (var i = 0; i < players.length; i++) {
+            if(deletedPlayers[i]) continue;
+
             var animaPlayed = false;
             var player = players[i];
             var fighter = fighters[i];
@@ -457,6 +483,7 @@ function FighterClient(username) {
         if (connectedToServer) {
             var myPlayer = players[myPID];
             var myFighter = fighters[myPID];
+            game.camera.follow(myPlayer);
             var multiplier = myFighter.hasteCoef;
             if (injuryRecovered) {
                 myFighter.isInjured = false;
@@ -482,9 +509,12 @@ function FighterClient(username) {
             }
             var healthBar = hitpointSprite[myPID];
 
-            if (myPlayer.body.y < 300 || healthBar.body.y < 300) {
-                myPlayer.body.y = 300;
-                healthBar.body.y = 300;
+            if (myPlayer.body.y < block_y || healthBar.body.y < block_y) {
+                myPlayer.body.y = block_y;
+                healthBar.body.y = block_y;
+            }
+            if (healthBar.body.y > Setting.HEIGHT-Fighter.HEIGHT*2) {
+                healthBar.body.y = Setting.HEIGHT-Fighter.HEIGHT*2;
             }
             if (myFighter.hp > 0) {
                 sendToServer({
