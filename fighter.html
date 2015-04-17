@@ -1,50 +1,78 @@
-<!doctype html> 
-<html lang="en"> 
-<head> 
-	<meta charset="UTF-8" />
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
     <title>Little Fighter:Arm yourself</title>
     <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript">
         var global = {}; // For node.js require
     </script>
-    <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
-    <script src="http://cdn.jsdelivr.net/jquery/2.1.3/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="./bootstrap.min.css">
-    <script type="text/javascript" src="./bootstrap.min.js"></script>
+    <!-- 3rd party libs -->
+    <link rel="stylesheet" type="text/css" href="./lib/bootstrap.min.css">
+    <script src="./lib/sockjs.min.js"></script>
+    <script src="./lib/jquery.min.js"></script>
+    <script type="text/javascript" src="./lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./lib/virtualjoystick.js"></script>
+    <script type="text/javascript" src="./lib/gamecontroller.min.js"></script>
+    <script type="text/javascript" src="./lib/phaser.min.js"></script>
+    <!-- end of 3rd party libs -->
+
+    <!-- our own awesome files -->
     <script type="text/javascript" src="./fighter.js"></script>
-    <script type="text/javascript" src="./gamecontroller.min.js"></script>
-    <script type="text/javascript" src="./phaser.min.js"></script>
     <script type="text/javascript" src="./client.js"></script>
     <script type="text/javascript" src="./setting.js"></script>
     <script type="text/javascript" src="./player.js"></script>
+    <!-- end of our own awesome files -->
+
     <style type="text/css">
     </style>
 </head>
 <body>
-    <div id="warning">
-        this game is only viewable in landscape mode
-    </div>
-
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="exampleModalLabel">Please enter your name</h4>
-      </div>
-      <div class="modal-body">
-        <form>
-          <div class="form-group">
-            <label for="recipient-name" class="control-label">Username:</label>
-            <input type="text" class="form-control" id="username">
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" onclick="dismissModal();">Start Game</button>
-      </div>
-    </div>
-  </div>
+<div id="warning">
+    this game is only viewable in landscape mode
 </div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"
+     data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Please enter your name</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">Username:</label>
+                        <input type="text" class="form-control" id="username">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="dismissModal();">Start Game</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="join-game" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"
+     data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Please enter your name</h4>
+            </div>
+            <div class="modal-body" id="join-section">
+                <button type="button" class="btn btn-primary" id="createButton">Create Lobby</button>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
