@@ -481,6 +481,9 @@ function FighterClient(username) {
                 myPlayer.body.y = 300;
                 healthBar.body.y = 300;
             }
+            if (healthBar.body.y > Setting.HEIGHT-Fighter.HEIGHT*2) {
+                healthBar.body.y = Setting.HEIGHT-Fighter.HEIGHT*2;
+            }
             if (myFighter.hp > 0) {
                 sendToServer({
                     type: "move",
