@@ -24,14 +24,11 @@ function FighterClient(username) {
     var fullHP = 1000;
     var hitpointBarScale = 0.35;
     var isTouchingHit = false;
-    var isTouchingLeft = false;
-    var isTouchingRight = false;
-    var isTouchingUp = false;
-    var isTouchingDown = false;
     var myName = username;          //username in the game
     var joystick;                   //virtual joystick for touch screen
     var lid;
     var that = this;
+    var mPlayer = new musicPlayer();
 
     /*
      * private method: showMessage(location, msg)
@@ -526,6 +523,7 @@ function FighterClient(username) {
             create: create,
             update: update
         });
+        mPlayer.play();
         if (action === 'create') {
             setTimeout(function () {
                 sendToServer({
