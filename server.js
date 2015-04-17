@@ -183,7 +183,6 @@ function Server() {
                 if(!isPlayersNearBoundry && isOpponentInRangeOfInterest){
                     unicast(_sockets[myid],{type:"outOfInterest",pid:p.pid});
                 }else {
-                    //console.log(p.fighter.isHitting+p.fighter.facingDirection);
                     var date = new Date();
                     var currentTime = date.getTime();
                     var states = {
@@ -318,7 +317,6 @@ function Server() {
                                 var ry2 = lobby.hpRune.y + Rune.HEIGHT;
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
                                     // collide with hpRune
-                                    console.log("eat rune hp");
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'hp'
@@ -343,7 +341,6 @@ function Server() {
                                 var ry2 = lobby.hasteRune.y + Rune.HEIGHT;
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
                                     // collide with hasteRune
-                                    console.log("eat rune haste");
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'haste'
@@ -370,7 +367,6 @@ function Server() {
                             var kill = false;
                             var id;
                             if (p.fighter.isHitting) {
-                                console.log("players" + players);
                                 for (id in lobbies[p.lid].players) {
                                     var opponent = players[id];
                                     if (p.fighter.hp > 0 && opponent.fighter.hp > 0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured) {
@@ -407,6 +403,7 @@ function Server() {
                                         }
                                     }
                                     if (kill) p.lastHit++;
+                                    kill = false;
                                 }
                             }
                             break;

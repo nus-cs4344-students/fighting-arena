@@ -208,7 +208,6 @@ function FighterClient(username) {
                             resumePlayer(id);
                         }
                         if (message.username) {
-                            console.log(message.lastHit);
                             texts[id].text = message.username;
                             scoreTexts[id].text = [message.username,":",message.lastHit].join(" ");
                         }
@@ -376,7 +375,7 @@ function FighterClient(username) {
         // console.log(players);
         deletedPlayers[pid] = false;
         players[pid].visible = true;
-        scoreTexts[pid].visible = true;
+        //scoreTexts[pid].visible = true;
         hitpointSprite[pid].visible = true;
         texts[pid].visible = true;
     }
@@ -386,7 +385,7 @@ function FighterClient(username) {
         console.log("deleted player of " + pid);
         console.log(players[pid]);
         players[pid].visible = false;
-        scoreTexts[pid].visible = false;
+        //scoreTexts[pid].visible = false;
         hitpointSprite[pid].visible = false;
         texts[pid].visible = false;
         deletedPlayers[pid] = true;
@@ -546,7 +545,14 @@ function FighterClient(username) {
             }
             scores = [];
             for(var i=0;i<maxPlayers;i++){
-                scoreTexts[i].x = (myPlayer.body.x-Setting.WIDTH/2)>0?myPlayer.body.x-Setting.WIDTH/2:0;
+                if((myPlayer.body.x-Setting.WIDTH/2)<=0){
+                    scoreTexts[i].x = 0;
+                }else if((myPlayer.body.x+Setting.WIDTH/2)>Setting.FULL_WIDTH){
+                    scoreTexts[i].x = Setting.FULL_WIDTH-Setting.WIDTH;
+                }else{
+                    scoreTexts[i].x = myPlayer.body.x-Setting.WIDTH/2;
+                }
+
                 if(fighters[i].lastHit!==undefined)
                     scores.push(i);
             }
@@ -555,7 +561,7 @@ function FighterClient(username) {
                 scoreTexts[scores[i]].y = 40+30*i;
             }
 
-            num_text.x = (myPlayer.body.x-Setting.WIDTH/2)>0?myPlayer.body.x-Setting.WIDTH/2:0;
+            num_text.x = scoreTexts[0].x;
         }
 
     }
