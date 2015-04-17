@@ -7,7 +7,7 @@ var Setting = {
 	PORT : 3333,				// port of fighter game
 	FRAME_RATE : 25,			// frame rate of fighter game
 	SERVER_NAME : "192.168.1.100"	// server name of fighter game
-	//SERVER_NAME : "localhost"	// server name of fighter game
+	//SERVER_NAME : "172.28.181.251"	// server name of fighter game
 }
 
 // For node.js require

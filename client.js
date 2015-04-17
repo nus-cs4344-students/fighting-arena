@@ -23,6 +23,7 @@ function FighterClient(username){
     var myPID;
     var injuryRecovered = false;
     var hitpointSprite = [];
+    var scoreTexts = [];
     var fullHP = 1000;
     var hitpointBarScale = 0.35;
     var isTouchingHit = false;
@@ -166,7 +167,10 @@ function FighterClient(username){
                         var id = message.pid;
                         if (message.username){
                             texts[id].text = message.username;
+                            scoreTexts[id].setText(message.username+": "+message.lastHit);
                         }
+                        fighters[id].lastHit = message.lastHit;
+
                         fighters[id].x = message.x;
                         fighters[id].y = message.y;
                         fighters[id].vx = message.vx;
@@ -247,7 +251,6 @@ function FighterClient(username){
 
         // add sky 
         game.add.sprite(0, 0, 'sky');
-        
         for(var i=0;i<maxPlayers;i++){
             randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
             randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
@@ -279,8 +282,16 @@ function FighterClient(username){
             newPlayer.visible = false;
             newHp.visible = false;
             var tt = game.add.text(16, 16, '', { fontSize: '20px', fill: '#FFF' });
+            var height = 10 *i;
+            console.log(height);
+            var score = game.add.text(100,height, '', { fontSize: '20px', fill: '#FFF' });
+
             tt.anchor.set(0.5);
             texts[i] = tt;
+
+            scoreTexts[i] = score;
+            score.anchor.set(1,1);
+            score.visible = false;
             tt.visible = false;
 
         }
@@ -365,6 +376,7 @@ function FighterClient(username){
             var isInjured = fighters[i].isInjured;
             var hp = fighters[i].hp;
             var healthBar = hitpointSprite[i];
+            scoreTexts[i].visible = true;
             texts[i].visible = true;
             texts[i].x = fighters[i].x + 22;
             texts[i].y = fighters[i].y - 8;
@@ -399,7 +411,7 @@ function FighterClient(username){
                         }else if(direction==="right"){
                             player.animations.play('rightHitted');
                         }
-                        setTimeout(function() {injuryRecovered=true;}, 1100);
+                        setTimeout(function() {injuryRecovered=true;}, 1500);
                     }else if(isHitting){
                         if(direction==="left"){
                             player.animations.play('leftHit');
