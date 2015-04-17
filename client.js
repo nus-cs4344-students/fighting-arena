@@ -7,6 +7,7 @@ function FighterClient(username) {
     var stars;
     var bullets;
     var fireRate = 100;
+    var block_y = 120;
     var nextFire = 0;
     var maxPlayers = 20;
     var currentWeapon = 0;
@@ -203,7 +204,7 @@ function FighterClient(username) {
         frameHeight = 65;
         low_frameWidth = 32;
         low_frameHeight = 32;
-        game.load.image('sky', 'assets/back08.jpg');
+        game.load.image('background', 'assets/background.jpg');
         //game.load.image('sky', 'assets/sky.png');
         game.load.image('ground', 'assets/platform.png');
         game.load.image('star', 'assets/star.png');
@@ -236,8 +237,8 @@ function FighterClient(username) {
         //add button
 
         // add sky 
-        game.add.sprite(0, 0, 'sky');
-
+        game.add.tileSprite(0, 0, 2982,Setting.HEIGHT, 'background');
+        game.world.setBounds(0,0,2982,Setting.HEIGHT);
         for(var i=0;i<maxPlayers;i++){
             randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
             randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
@@ -452,6 +453,7 @@ function FighterClient(username) {
         if (connectedToServer) {
             var myPlayer = players[myPID];
             var myFighter = fighters[myPID];
+            game.camera.follow(myPlayer);
             var multiplier = myFighter.hasteCoef;
             if (injuryRecovered) {
                 myFighter.isInjured = false;
@@ -477,9 +479,9 @@ function FighterClient(username) {
             }
             var healthBar = hitpointSprite[myPID];
 
-            if (myPlayer.body.y < 300 || healthBar.body.y < 300) {
-                myPlayer.body.y = 300;
-                healthBar.body.y = 300;
+            if (myPlayer.body.y < block_y || healthBar.body.y < block_y) {
+                myPlayer.body.y = block_y;
+                healthBar.body.y = block_y;
             }
             if (healthBar.body.y > Setting.HEIGHT-Fighter.HEIGHT*2) {
                 healthBar.body.y = Setting.HEIGHT-Fighter.HEIGHT*2;
