@@ -7,7 +7,7 @@ function FighterClient(username) {
     var stars;
     var bullets;
     var fireRate = 100;
-    var block_y = 120;
+    var block_y = Setting.BLOCK_Y;
     var nextFire = 0;
     var maxPlayers = 20;
     var currentWeapon = 0;
@@ -171,7 +171,9 @@ function FighterClient(username) {
                         break;
                     case "update":
                         var id = message.pid;
-                        //deletedPlayers[id] = false;
+                        if(deletedPlayers[id]){
+                            resumePlayer(id);
+                        }
                         if (message.username) {
                             texts[id].text = message.username;
                             scoreTexts[id].setText(message.username+": "+message.lastHit);
@@ -187,6 +189,10 @@ function FighterClient(username) {
                         fighters[id].isInjured = message.injuryStatus;
                         fighters[id].hp = message.hp;
                         fighters[id].hasteCoef = message.hasteCoef;
+                        break;
+                    case "outOfInterest":
+                        if(!deletedPlayers[message.pid])
+                            deletePlayer(message.pid);
                         break;
                     default:
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
@@ -237,8 +243,8 @@ function FighterClient(username) {
         //add button
 
         // add sky 
-        game.add.tileSprite(0, 0, 2982,Setting.HEIGHT, 'background');
-        game.world.setBounds(0,0,2982,Setting.HEIGHT);
+        game.add.tileSprite(0, 0, Setting.FULL_WIDTH,Setting.HEIGHT, 'background');
+        game.world.setBounds(0,0,Setting.FULL_WIDTH,Setting.HEIGHT);
         for(var i=0;i<maxPlayers;i++){
             randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
             randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
@@ -347,6 +353,15 @@ function FighterClient(username) {
         });
     }
 
+    function resumePlayer(pid) {
+        // console.log(players);
+        deletedPlayers[pid] = false;
+        players[pid].visible = true;
+        scoreTexts[pid].visible = true;
+        hitpointSprite[pid].visible = true;
+        texts[pid].visible = true;
+    }
+
     function deletePlayer(pid) {
         console.log("my id " + myPID);
         console.log("deleted player of " + pid);
@@ -356,7 +371,7 @@ function FighterClient(username) {
         hitpointSprite[pid].visible = false;
         texts[pid].visible = false;
         deletedPlayers[pid] = true;
-        numOfPlayers--;
+        //numOfPlayers--;
     }
 
     function renderGame() {
@@ -522,7 +537,6 @@ function FighterClient(username) {
             maxTime = 500;
             bullet.rotation = game.physics.arcade.moveToXY(bullet, x, y, speed, maxTime);
         }
-
     }
 
     function hitOpponent(player, opponent) {

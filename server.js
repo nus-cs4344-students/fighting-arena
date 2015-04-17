@@ -81,8 +81,8 @@ function Server() {
     var newPlayer = function (conn, lid, username) {
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
-        var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
-        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
+        var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
+        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + 1;
         var rune = new Rune('haste');
         rune.collected_at = new Date();
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY, username, lid);
@@ -125,34 +125,51 @@ function Server() {
     var gameLoop = function () {
         // Check if ball is moving
         var id;
-        for (id in players) {
-            var p = players[id];
-            // Update on player side
-            var xx = p.fighter.x;
-            var yy = p.fighter.y;
-            var vx = p.fighter.vx;
-            var vy = p.fighter.vy;
-            //console.log(p.fighter.isHitting+p.fighter.facingDirection);
-            var date = new Date();
-            var currentTime = date.getTime();
-            var states = {
-                type: "update",
-                timestamp: currentTime,
-                x: xx,
-                y: yy,
-                vx: vx,
-                vy: vy,
-                pid: p.pid,
-                hp: p.fighter.hp,
-                status: p.fighter.status,
-                injuryStatus: p.fighter.isInjured,
-                isHitting: p.fighter.isHitting,
-                facingDirection: p.fighter.facingDirection,
-                username: p.username,
-                hasteCoef: p.fighter.hasteCoef
-            };
-            broadcast(states, p.lid);
+        var myid;
+        for(myid in players){
+            var myPlayer = players[myid];
+            var myx = myPlayer.fighter.x;
+            var _sockets = lobbies[myPlayer.lid].sockets;
+            for (id in players) {
+                var p = players[id];
+                // Update on player side
+                var xx = p.fighter.x;
+                var yy = p.fighter.y;
+                var vx = p.fighter.vx;
+                var vy = p.fighter.vy;
+                // the opponents are not within the interest area. we just do not send sockets
+                var isPlayersNearBoundry = (myx<Setting.WIDTH/2 && xx<Setting.WIDTH*1.5)
+                     || (myx>Setting.FULL_WIDTH-Setting.WIDTH/2 && xx>Setting.FULL_WIDTH-Setting.WIDTH*1.5);
+                var isOpponentInRangeOfInterest = xx<(myx-Setting.WIDTH/2-Fighter.WIDTH*2) || xx>(myx+Setting.WIDTH/2+Fighter.WIDTH*2);
+                if(!isPlayersNearBoundry && isOpponentInRangeOfInterest){
+                    unicast(_sockets[myid],{type:"outOfInterest",pid:p.pid});
+                }else {
+                    //console.log(p.fighter.isHitting+p.fighter.facingDirection);
+                    var date = new Date();
+                    var currentTime = date.getTime();
+                    var states = {
+                        type: "update",
+                        timestamp: currentTime,
+                        x: xx,
+                        y: yy,
+                        vx: vx,
+                        vy: vy,
+                        pid: p.pid,
+                        hp: p.fighter.hp,
+                        status: p.fighter.status,
+                        injuryStatus: p.fighter.isInjured,
+                        isHitting: p.fighter.isHitting,
+                        facingDirection: p.fighter.facingDirection,
+                        username: p.username,
+                        hasteCoef: p.fighter.hasteCoef,
+                        lid: p.lid
+                    };
+                    unicast(_sockets[myid],states);
+                }   
+                //broadcast(states, p.lid);
+            }
         }
+        
     };
 
     /*

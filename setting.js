@@ -5,6 +5,8 @@ var Setting = {
 
     HEIGHT: 640,					// Height of fighter game window
     WIDTH: 1136,					// Width of fighter game window
+    FULL_WIDTH: 2000,
+    BLOCK_Y:120,
     PORT: 3333,					// Port of fighter game
     FRAME_RATE: 25,				// Frame rate of fighter game
     MAX_NAME_LENGTH: 15,			// Frame rate of fighter game
