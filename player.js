@@ -12,6 +12,8 @@ function Player(sid, pid, xPos, yPos, username, lid) {
     this.lastUpdated = new Date().getTime();
     this.fighter = new Fighter(xPos, yPos, 0);
     this.username = username;
+    this.lastHit = 0;
+
     this.lid = lid;
     /*
      * priviledge method: getDelay

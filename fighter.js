@@ -25,6 +25,7 @@ function Fighter(xPos,yPos,status){
     this.isHitting;
     this.facingDirection;
     this.isInjured;
+    this.lastHit = 0;
 	// Constructor
 	var that = this; 
 	this.hp = 1000;

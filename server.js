@@ -123,34 +123,35 @@ function Server() {
 
     var gameLoop = function () {
         // Check if ball is moving
-        var id;
-        for (id in players) {
-            var p = players[id];
-            // Update on player side
-            var xx = p.fighter.x;
-            var yy = p.fighter.y;
-            var vx = p.fighter.vx;
-            var vy = p.fighter.vy;
-            //console.log(p.fighter.isHitting+p.fighter.facingDirection);
-            var date = new Date();
-            var currentTime = date.getTime();
-            var states = {
-                type: "update",
-                timestamp: currentTime,
-                x: xx,
-                y: yy,
-                vx: vx,
-                vy: vy,
-                pid: p.pid,
-                hp: p.fighter.hp,
-                status: p.fighter.status,
-                injuryStatus: p.fighter.isInjured,
-                isHitting: p.fighter.isHitting,
-                facingDirection: p.fighter.facingDirection,
-                username: p.username
-            };
-            broadcast(states, p.lid);
-        }
+            var id;
+            for (id in players){
+                var p = players[id];
+                // Update on player side
+                var xx = p.fighter.x;
+                var yy = p.fighter.y;
+                var vx = p.fighter.vx;
+                var vy = p.fighter.vy;
+                //console.log(p.fighter.isHitting+p.fighter.facingDirection);
+                var date = new Date();
+                var currentTime = date.getTime();
+                var states = {
+                    type: "update",
+                    timestamp: currentTime,
+                    x:xx,
+                    y:yy,
+                    vx: vx,
+                    vy: vy,
+                    pid: p.pid,
+                    hp: p.fighter.hp,
+                    status: p.fighter.status,
+                    injuryStatus: p.fighter.isInjured,
+                    isHitting: p.fighter.isHitting,
+                    facingDirection: p.fighter.facingDirection,
+                    username: p.username,
+                    lastHit: p.lastHit
+                };
+                broadcast(states);
+            }
     };
 
     /*
@@ -253,12 +254,13 @@ function Server() {
                             p.fighter.isHitting = message.isHitting;
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
                             // determine whether have collision with other players
-                            var id;
-                            if (p.fighter.isHitting) {
-                                for (id in players) {
+                            var kill = false;
+                            if(p.fighter.isHitting){
+                                for(id in players){
                                     var opponent = players[id];
-                                    if (id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured) {
-                                        if (p.fighter.facingDirection == 'right') {
+                                    if(p.fighter.hp >0 && opponent.fighter.hp>0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
+                                        if(p.fighter.facingDirection == 'right'){
+
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             //console.log(tOFRight);
                                             var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
@@ -271,6 +273,9 @@ function Server() {
                                                 opponent.fighter.getHitted(10);
                                                 //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
+                                                if(opponent.fighter.hp<=0){
+                                                    kill = true;
+                                                }
                                             }
                                         }
                                         else if (p.fighter.facingDirection == 'left') {
@@ -280,9 +285,13 @@ function Server() {
                                                 && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)) {
                                                 opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
+                                                if(opponent.fighter.hp<=0){
+                                                    kill = true;
+                                                }
                                             }
                                         }
                                     }
+                                    if(kill) p.lastHit++;
                                 }
                             }
                             break;
