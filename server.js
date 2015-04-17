@@ -16,6 +16,7 @@
 
 var LIB_PATH = "./";
 require(LIB_PATH + 'setting.js');
+require(LIB_PATH + 'rune.js');
 require(LIB_PATH + 'player.js');
 require(LIB_PATH + 'fighter.js');
 require(LIB_PATH + 'lobby.js');
@@ -82,8 +83,10 @@ function Server() {
         // Create player object and insert into players with key = conn.id
         var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
         var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
-
+        var rune = new Rune('haste');
+        rune.collected_at = new Date();
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY, username, lid);
+        players[conn.id].addRune(rune);
         lobbies[lid] = lobbies[lid] || new Lobby(lid);
         lobbies[lid].addConnection(conn);
         var direction = lobbies[lid].nextPlayerDirection;
@@ -117,8 +120,6 @@ function Server() {
                 gameLoop();
             }, 1000 / Setting.FRAME_RATE);
         }
-
-        // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 
     var gameLoop = function () {
@@ -147,7 +148,8 @@ function Server() {
                 injuryStatus: p.fighter.isInjured,
                 isHitting: p.fighter.isHitting,
                 facingDirection: p.fighter.facingDirection,
-                username: p.username
+                username: p.username,
+                hasteCoef: p.fighter.hasteCoef
             };
             broadcast(states, p.lid);
         }
@@ -228,7 +230,6 @@ function Server() {
                             console.log("craete_lobby");
                             var ids = Object.keys(lobbies);
                             var lid = helper.randomLobbyId(ids);
-                            console.log("fafafa" + lid);
                             newPlayer(conn, lid, message.username);
                             break;
                         //one of the player moves the mouse.

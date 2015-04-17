@@ -12,24 +12,24 @@
  */
 
 // enforce strict/clean programming
-"use strict"; 
+"use strict";
 
-function Fighter(xPos,yPos,status){
-	// Public variables
-	this.x;
-	this.y;
+function Fighter(xPos, yPos, status) {
+    // Public variables
+    this.x;
+    this.y;
     this.vx;
     this.vy;
     this.hp;
-    this.status; 
+    this.status;
     this.isHitting;
     this.facingDirection;
     this.isInjured;
-	// Constructor
-	var that = this; 
-	this.hp = 1000;
-	this.x = xPos;
-	this.y = yPos;
+    // Constructor
+    this.hasteCoef = 1;
+    this.hp = 1000;
+    this.x = xPos;
+    this.y = yPos;
     this.status = status;
     this.facingDirection = "right";
     this.isInjured = false;
@@ -37,7 +37,7 @@ function Fighter(xPos,yPos,status){
 
 // Static variables
 Fighter.WIDTH = 32;
-Fighter.HEIGHT =32;
+Fighter.HEIGHT = 32;
 /*
  * public method: move(newx,newy)
  *
@@ -45,19 +45,19 @@ Fighter.HEIGHT =32;
  * boundary conditions.
  * We set the upper left of the frame as 0,0
  */
-Fighter.prototype.move = function(newx,newy){
-	if (newx < 0)
-		this.x = 0;
-	else if (newx > Setting.WIDTH - Fighter.WIDTH)
-		this.x = Setting.WIDTH-Fighter.WIDTH;
-	else
-		this.x = newx;
-	if(newy<0)
-		this.y=0;
-	else if (newy > Setting.HEIGHT-Fighter.HEIGHT)
-		this.y = Setting.HEIGHT-Fighter.HEIGHT;
-	else 
-		this.y = newy;
+Fighter.prototype.move = function (newx, newy) {
+    if (newx < 0)
+        this.x = 0;
+    else if (newx > Setting.WIDTH - Fighter.WIDTH)
+        this.x = Setting.WIDTH - Fighter.WIDTH;
+    else
+        this.x = newx;
+    if (newy < 0)
+        this.y = 0;
+    else if (newy > Setting.HEIGHT - Fighter.HEIGHT)
+        this.y = Setting.HEIGHT - Fighter.HEIGHT;
+    else
+        this.y = newy;
 
 }
 
@@ -67,9 +67,9 @@ Fighter.prototype.move = function(newx,newy){
  * Move the fighter to new x-position by calculating
  * the velocity.
  */
-Fighter.prototype.moveOneStepLeft = function() {
-	var newx = this.x - this.vx; // 10 is the "scaling factor"
-    this.move(newx,this.y);
+Fighter.prototype.moveOneStepLeft = function () {
+    var newx = this.x - this.vx; // 10 is the "scaling factor"
+    this.move(newx, this.y);
 }
 
 /*
@@ -78,9 +78,9 @@ Fighter.prototype.moveOneStepLeft = function() {
  * Move the fighter to new x-position by calculating
  * the velocity.
  */
-Fighter.prototype.moveOneStepRight = function() {
-	var newx = this.x + this.vx; // 10 is the "scaling factor"
-    this.move(newx,this.y);
+Fighter.prototype.moveOneStepRight = function () {
+    var newx = this.x + this.vx; // 10 is the "scaling factor"
+    this.move(newx, this.y);
 }
 
 /*
@@ -89,9 +89,9 @@ Fighter.prototype.moveOneStepRight = function() {
  * Move the fighter to new y-position by calculating
  * the velocity.
  */
-Fighter.prototype.moveOneStepUp = function() {
-	var newy = this.y - this.vy; // 10 is the "scaling factor"
-    this.move(this.x,newy);
+Fighter.prototype.moveOneStepUp = function () {
+    var newy = this.y - this.vy; // 10 is the "scaling factor"
+    this.move(this.x, newy);
 }
 
 /*
@@ -100,9 +100,9 @@ Fighter.prototype.moveOneStepUp = function() {
  * Move the fighter to new y-position by calculating
  * the velocity.
  */
-Fighter.prototype.moveOneStepDown = function() {
-	var newy = this.y + this.vy; // 10 is the "scaling factor"
-    this.move(this.x,newy);
+Fighter.prototype.moveOneStepDown = function () {
+    var newy = this.y + this.vy; // 10 is the "scaling factor"
+    this.move(this.x, newy);
 }
 
 /*
@@ -110,14 +110,22 @@ Fighter.prototype.moveOneStepDown = function() {
  *
  * Reset the position of paddle
  */
-Fighter.prototype.reset = function() {
-	this.hp = 1000;
+Fighter.prototype.reset = function () {
+    this.hp = 1000;
 }
 
-Fighter.prototype.getHitted = function(damage){
-	this.hp -= damage;
-	if(this.hp<=0) this.hp=0;
-	this.isInjured = true;
+Fighter.prototype.haste = function () {
+    this.hasteCoef = 2;
+}
+
+Fighter.prototype.resetVelocity = function () {
+    this.hasteCoef = 1;
+}
+
+Fighter.prototype.getHitted = function (damage) {
+    this.hp -= damage;
+    if (this.hp <= 0) this.hp = 0;
+    this.isInjured = true;
 }
 /*
  * public method: isAtLeft()

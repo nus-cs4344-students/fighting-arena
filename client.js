@@ -178,6 +178,7 @@ function FighterClient(username) {
                         fighters[id].isHitting = message.isHitting;
                         fighters[id].isInjured = message.injuryStatus;
                         fighters[id].hp = message.hp;
+                        fighters[id].hasteCoef = message.hasteCoef;
                         break;
                     default:
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
@@ -426,21 +427,24 @@ function FighterClient(username) {
         if (connectedToServer) {
             var myPlayer = players[myPID];
             var myFighter = fighters[myPID];
+            var multiplier = myFighter.hasteCoef;
             if (injuryRecovered) {
                 myFighter.isInjured = false;
                 injuryRecovered = false;
             }
             var facingDirection = myFighter.facingDirection;
+
             if (cursors.up.isDown || (joystick && joystick.up())) {
-                vy = -150;
+                vy = -150 * multiplier;
             } else if (cursors.down.isDown || (joystick && joystick.down())) {
-                vy = 150;
+                vy = 150 * multiplier;
             }
+
             if (cursors.left.isDown || (joystick && joystick.left())) {
-                vx = -150;
+                vx = -150 * multiplier;
                 facingDirection = "left";
             } else if (cursors.right.isDown || (joystick && joystick.right())) {
-                vx = 150;
+                vx = 150 * multiplier;
                 facingDirection = "right";
             }
             if (this.input.keyboard.isDown(Phaser.Keyboard.D) || isTouchingHit) {
@@ -458,7 +462,7 @@ function FighterClient(username) {
                     x: myPlayer.body.x,
                     y: myPlayer.body.y,
                     vx: vx,
-                    vy: vy,
+                    vy: vy
                 });
 
                 sendToServer({
@@ -523,7 +527,7 @@ function FighterClient(username) {
             create: create,
             update: update
         });
-        mPlayer.play();
+        //mPlayer.play();
         if (action === 'create') {
             setTimeout(function () {
                 sendToServer({
