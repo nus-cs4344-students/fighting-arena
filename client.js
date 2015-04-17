@@ -291,8 +291,8 @@ function FighterClient(username) {
         }
 
         for (var i = 0; i < maxPlayers; i++) {
-            randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
-            randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
+            var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
+            var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + Setting.BLOCK_Y+1;
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
