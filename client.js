@@ -544,13 +544,14 @@ function FighterClient(username) {
                     facingDirection: facingDirection
                 });
             }
-            scores = []
+            scores = [];
             for(var i=0;i<maxPlayers;i++){
                 scoreTexts[i].x = (myPlayer.body.x-Setting.WIDTH/2)>0?myPlayer.body.x-Setting.WIDTH/2:0;
-                scores.push(i);
+                if(fighters[i].lastHit!==undefined)
+                    scores.push(i);
             }
             scores.sort(function(a,b){return (fighters[b].lastHit-fighters[a].lastHit)});
-            for(i=0;i<maxPlayers;i++){
+            for(i=0;i<scores.length;i++){
                 scoreTexts[scores[i]].y = 40+30*i;
             }
 
