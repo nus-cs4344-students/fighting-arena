@@ -259,9 +259,10 @@ function FighterClient(username) {
 
         //add button
 
-        // add sky 
-<<<<<<< HEAD
+        // add bg
         game.add.sprite(0, 0, 'sky');
+        game.add.tileSprite(0, 0, 2982,Setting.HEIGHT, 'background');
+        game.world.setBounds(0,0,2982,Setting.HEIGHT);
 
         for (var i = 0; i < 2; i++) {
             var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
@@ -275,16 +276,9 @@ function FighterClient(username) {
             }
         }
 
-        for (var i = 0; i < maxPlayers; i++) {
-            var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
-            var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
-=======
-        game.add.tileSprite(0, 0, 2982,Setting.HEIGHT, 'background');
-        game.world.setBounds(0,0,2982,Setting.HEIGHT);
         for(var i=0;i<maxPlayers;i++){
             randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
             randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
->>>>>>> b4dc30222502e7c3709cf1c02b081604f3f7adfa
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
@@ -327,11 +321,7 @@ function FighterClient(username) {
             score.anchor.set(1, 1);
             score.visible = false;
             tt.visible = false;
-<<<<<<< HEAD
-=======
             deletedPlayers[i]=false;
-
->>>>>>> b4dc30222502e7c3709cf1c02b081604f3f7adfa
         }
 
 
