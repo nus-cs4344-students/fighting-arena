@@ -4,6 +4,7 @@ function FighterClient(username) {
 
     var socket;                     // socket used to connect to server 
     var cursors;
+    var num_text;
     var stars;
     var bullets;
     var fireRate = 100;
@@ -24,7 +25,7 @@ function FighterClient(username) {
     var myPID;
     var injuryRecovered = false;
     var hitpointSprite = [];
-    var scoreTexts = [];
+    var scoreTexts = {};
     var deletedPlayers = {};
     var fullHP = 1000;
     var hitpointBarScale = 0.35;
@@ -207,8 +208,9 @@ function FighterClient(username) {
                             resumePlayer(id);
                         }
                         if (message.username) {
+                            console.log(message.lastHit);
                             texts[id].text = message.username;
-                            scoreTexts[id].setText(message.username + ": " + message.lastHit);
+                            scoreTexts[id].text = [message.username,":",message.lastHit].join(" ");
                         }
                         fighters[id].lastHit = message.lastHit;
 
@@ -323,14 +325,15 @@ function FighterClient(username) {
             newHp.visible = false;
 
             var tt = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
-            var height = 10 * i;
-            var score = game.add.text(100, height, '', {fontSize: '20px', fill: '#FFF'});
+
+            var score = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
+
 
             tt.anchor.set(0.5);
             texts[i] = tt;
 
+            score.anchor.set(0);
             scoreTexts[i] = score;
-            score.anchor.set(1, 1);
             score.visible = false;
             tt.visible = false;
             deletedPlayers[i] = false;
@@ -441,7 +444,6 @@ function FighterClient(username) {
                     player.frame = direction === "right" ? 57 : 68;
                 }
                 else {
-
                     if (isInjured) {
                         if (direction === "left") {
                             player.animations.play('leftHitted');
@@ -542,6 +544,17 @@ function FighterClient(username) {
                     facingDirection: facingDirection
                 });
             }
+            scores = []
+            for(var i=0;i<maxPlayers;i++){
+                scoreTexts[i].x = (myPlayer.body.x-Setting.WIDTH/2)>0?myPlayer.body.x-Setting.WIDTH/2:0;
+                scores.push(i);
+            }
+            scores.sort(function(a,b){return (fighters[b].lastHit-fighters[a].lastHit)});
+            for(i=0;i<maxPlayers;i++){
+                scoreTexts[scores[i]].y = 40+30*i;
+            }
+
+            num_text.x = (myPlayer.body.x-Setting.WIDTH/2)>0?myPlayer.body.x-Setting.WIDTH/2:0;
         }
 
     }
@@ -566,7 +579,7 @@ function FighterClient(username) {
 
     function hitOpponent(player, opponent) {
         opponentStatus = -1;
-        console.log(hasPlayed, playerStatus, opponentStatus);
+        //console.log(hasPlayed, playerStatus, opponentStatus);
         if (!hasPlayed && playerStatus == 1 && opponentStatus == -1) {
             opponent.animations.play('leftHitted');
             opponent.body.x += 20;

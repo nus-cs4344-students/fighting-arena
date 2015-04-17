@@ -201,7 +201,8 @@ function Server() {
                         facingDirection: p.fighter.facingDirection,
                         username: p.username,
                         hasteCoef: p.fighter.hasteCoef,
-                        lid: p.lid
+                        lid: p.lid,
+                        lastHit:p.lastHit
                     };
                     unicast(_sockets[myid],states);
                 }   
