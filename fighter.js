@@ -33,6 +33,7 @@ function Fighter(xPos, yPos, status) {
     this.status = status;
     this.facingDirection = "right";
     this.isInjured = false;
+    this.lastHit;
 }
 
 // Static variables
