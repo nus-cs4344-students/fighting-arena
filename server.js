@@ -104,7 +104,7 @@ function Server() {
             lid: lid
         }, lid);
         //count actually has same function as nextPID;
-        lobbies[lid].count++
+        lobbies[lid].count++;
         count++;
 
         console.log("Now we have " + lobbies[lid].count + " players in lobby" + lid);
@@ -254,12 +254,15 @@ function Server() {
                             p.fighter.isHitting = message.isHitting;
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
                             // determine whether have collision with other players
+                            var kill = false;
                             var id;
-                            if (p.fighter.isHitting) {
-                                for (id in players) {
+                            if(p.fighter.isHitting){
+                                console.log("players"+players);
+                                for(id in players){
                                     var opponent = players[id];
-                                    if (id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured) {
-                                        if (p.fighter.facingDirection == 'right') {
+                                    if(p.fighter.hp >0 && opponent.fighter.hp>0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
+                                        if(p.fighter.facingDirection == 'right'){
+
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             //console.log(tOFRight);
                                             var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
@@ -272,18 +275,25 @@ function Server() {
                                                 opponent.fighter.getHitted(10);
                                                 //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
+                                                if(opponent.fighter.hp<=0){
+                                                    kill = true;
+                                                }
                                             }
                                         }
-                                        else if (p.fighter.facingDirection == 'left') {
+                                        else if (p.fighter.facingDirection === 'left') {
                                             if (p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
                                                 && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
                                                 && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)) {
                                                 opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
+                                                if(opponent.fighter.hp<=0){
+                                                    kill = true;
+                                                }
                                             }
                                         }
                                     }
+                                    if(kill) p.lastHit++;
                                 }
                             }
                             break;
