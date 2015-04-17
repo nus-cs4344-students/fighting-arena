@@ -12,6 +12,8 @@ function FighterClient(username) {
     var maxPlayers = 20;
     var currentWeapon = 0;
     var players = [];
+    var hasteRune;
+    var hpRune;
     var fighters = [];
     var texts = [];
     var serverMsg;
@@ -145,9 +147,31 @@ function FighterClient(username) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
                     //created player
+                    case "runeDisappear":
+                        if (message.rtype === 'haste'){
+                            hasteRune.visible = false;
+                            delete hasteRune.name;
+                        } else {
+                            hpRune.visible = false;
+                            delete hpRune.name;
+                        }
+                        break;
+                    case "createRune":
+                        var x = message.x;
+                        var y = message.y;
+                        var type = message.rtype;
+                        var name = message.rname;
+                        if (type === 'haste') {
+                            hasteRune['name'] = name;
+                            hasteRune.x = x;
+                            hasteRune.y = y;
+                        } else {
+                            hpRune['name'] = name;
+                            hpRune.x = x;
+                            hpRune.y = y;
+                        }
+                        break;
                     case "lobbyInfo":
-                        console.log("lobbies");
-                        console.log(message.lobbies);
                         showLobbyInfo(message.lobbies, message.num_players);
                         break;
                     case "newPlayer":
@@ -176,7 +200,7 @@ function FighterClient(username) {
                         }
                         if (message.username) {
                             texts[id].text = message.username;
-                            scoreTexts[id].setText(message.username+": "+message.lastHit);
+                            scoreTexts[id].setText(message.username + ": " + message.lastHit);
                         }
                         fighters[id].lastHit = message.lastHit;
 
@@ -210,6 +234,9 @@ function FighterClient(username) {
         frameHeight = 65;
         low_frameWidth = 32;
         low_frameHeight = 32;
+        game.load.image('sky', 'assets/back08.jpg');
+        game.load.image('haste', 'assets/haste.png');
+        game.load.image('hpRune', 'assets/hpRune.png');
         game.load.image('background', 'assets/background.jpg');
         //game.load.image('sky', 'assets/sky.png');
         game.load.image('ground', 'assets/platform.png');
@@ -220,10 +247,6 @@ function FighterClient(username) {
         //game.load.spritesheet('louis','assets/louis.png',frameWidth, frameHeight, -1,1,0);
         game.load.spritesheet('louis', 'assets/characters/louis_lowres.png', 32, 32.5, -1, 0.5, 0);
 
-    }
-
-    function hitButtonPressed() {
-        console.log("hehe");
     }
 
     function create() {
@@ -242,15 +265,29 @@ function FighterClient(username) {
 
         //add button
 
-        // add sky 
+        // add background
         game.add.tileSprite(0, 0, Setting.FULL_WIDTH,Setting.HEIGHT, 'background');
         game.world.setBounds(0,0,Setting.FULL_WIDTH,Setting.HEIGHT);
+
+        for (var i = 0; i < 2; i++) {
+            var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+            var randomY = (Math.random() * (Setting.HEIGHT - 300)) + 300;
+            if (i === 0) {
+                hasteRune = game.add.sprite(randomX, randomY, 'haste');
+                hasteRune.visible = false;
+            } else {
+                hpRune = game.add.sprite(randomX, randomY, 'hpRune');
+                hpRune.visible = false;
+            }
+        }
+
         for(var i=0;i<maxPlayers;i++){
             randomX = (Math.random() * (Setting.WIDTH-Fighter.WIDTH)) + 1;
             randomY = (Math.random() * (Setting.HEIGHT-Fighter.HEIGHT)) + 1;
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
+
 
             newPlayer.scale.setTo(2, 2);
             newHp.scale.setTo(hitpointBarScale, hitpointBarScale);
@@ -277,49 +314,22 @@ function FighterClient(username) {
             newPlayer.visible = false;
             newHp.visible = false;
 
-            var tt = game.add.text(16, 16, '', { fontSize: '20px', fill: '#FFF' });
-            var height = 10 *i;
+            var tt = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
+            var height = 10 * i;
             console.log(height);
-            var score = game.add.text(100,height, '', { fontSize: '20px', fill: '#FFF' });
+            var score = game.add.text(100, height, '', {fontSize: '20px', fill: '#FFF'});
 
             tt.anchor.set(0.5);
             texts[i] = tt;
 
             scoreTexts[i] = score;
-            score.anchor.set(1,1);
+            score.anchor.set(1, 1);
             score.visible = false;
             tt.visible = false;
             deletedPlayers[i]=false;
-
-        }
-        //  Finally some stars to collect
-        stars = game.add.group();
-
-        //  We will enable physics for any star that is created in this group
-        stars.enableBody = true;
-
-        //  Here we'll create 12 of them evenly spaced apart
-        for (var j = 0; j < 12; j++) {
-            //  Create a star inside of the 'stars' group
-            var star = stars.create(j * 70, 0, 'star');
-
-            //  Let gravity do its thing
-            star.body.gravity.y = 300;
-
-            //  This just gives each star a slightly random bounce value
-            star.body.bounce.y = 0.7 + Math.random() * 0.2;
-
-            if (i == 3) starX = star;
         }
 
-        bullets = game.add.group();
-        bullets.enableBody = true;
-        bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        bullets.createMultiple(40, 'bullet5', 0, false);
-        bullets.setAll('anchor.x', 0.5);
-        bullets.setAll('anchor.y', 0.5);
-        bullets.setAll('outOfBoundsKill', true);
-        bullets.setAll('checkWorldBounds', true);
+
 
         //  The # of players
         num_text = game.add.text(16, 16, '# of players: ' + numOfPlayers, {fontSize: '16px', fill: '#000'});
@@ -377,6 +387,13 @@ function FighterClient(username) {
     function renderGame() {
         //here is for rendering
         num_text.setText('# of players: ' + numOfPlayers);
+        if (hasteRune.hasOwnProperty('name')) {
+            hasteRune.visible = true;
+        }
+        if (hpRune.hasOwnProperty('name')) {
+            hpRune.visible = true;
+        }
+
         for (var i = 0; i < players.length; i++) {
             if(deletedPlayers[i]) continue;
 
@@ -425,9 +442,11 @@ function FighterClient(username) {
                         } else if (direction === "right") {
                             player.animations.play('rightHitted');
                         }
-                        setTimeout(function() {injuryRecovered=true;}, 1500);
-                    }else if(isHitting){
-                        if(direction==="left"){
+                        setTimeout(function () {
+                            injuryRecovered = true;
+                        }, 1500);
+                    } else if (isHitting) {
+                        if (direction === "left") {
                             player.animations.play('leftHit');
                         } else if (direction === "right") {
                             player.animations.play('rightHit');
@@ -552,17 +571,6 @@ function FighterClient(username) {
             opponent.animations.stop();
             hasPlayed = false;
         }
-    }
-
-    function collectStar(player, star) {
-
-        // Removes the star from the screen
-        star.kill();
-        //nextWeapon();
-        //  Add and update the score
-        //score += 10;
-        //scoreText.text = 'Score: ' + score;
-
     }
 
     this.start = function (action) {

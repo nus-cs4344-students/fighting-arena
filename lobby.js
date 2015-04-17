@@ -13,16 +13,19 @@ function Lobby(lid){
     this.lid = lid;
     this.sockets = {};
     this.count = 0;
+    this.hasteRune;
+    this.hpRune;
+    this.players = {};
     var that = this;
 
 
     this.addConnection = function (conn) {
         that.sockets[conn.id] = conn;
-    }
+    };
 
     this.nextPlayerDirection = function (){
         return that.count % 2 != 1 ? "left" : "right";
-    }
+    };
 
 }
 

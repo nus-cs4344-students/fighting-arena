@@ -24,13 +24,14 @@ require(LIB_PATH + 'helper.js');
 
 function Server() {
     // Private Variables
-    var port;         // Game port 
-    var count;        // Keeps track how many people are connected to server 
+    var count;        // Keeps track how many people are connected to server
     var nextPID;      // PID to assign to next connected player (i.e. which player slot is open) 
     var gameInterval; // Interval variable used for gameLoop 
-    var ball;         // the game ball 
+    var hpRuneInterval; // Interval variable used for rune generation
+    var hasteRuneInterval; // Interval variable used for rune generation
     var sockets;      // Associative array for sockets, indexed via player ID
     var lobbies;
+    var runes = {};
     var players;      // Associative array for players, indexed via socket ID
     var pidMap = {};
     var helper = new Helper();
@@ -81,13 +82,15 @@ function Server() {
     var newPlayer = function (conn, lid, username) {
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
+
         var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
-        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + 1;
+        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + Setting.BLOCK_Y+1;
         var rune = new Rune('haste');
         rune.collected_at = new Date();
+
         players[conn.id] = new Player(conn.id, nextPID, randomX, randomY, username, lid);
-        players[conn.id].addRune(rune);
         lobbies[lid] = lobbies[lid] || new Lobby(lid);
+        lobbies[lid].players[conn.id] = players[conn.id];
         lobbies[lid].addConnection(conn);
         var direction = lobbies[lid].nextPlayerDirection;
         //sockets[conn.id] = conn;
@@ -119,6 +122,42 @@ function Server() {
             gameInterval = setInterval(function () {
                 gameLoop();
             }, 1000 / Setting.FRAME_RATE);
+
+            hasteRuneInterval = setInterval(function () {
+                var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+                var randomY = (Math.random() * (Setting.HEIGHT - 350)) + 300;
+                var runeName = helper.randomLobbyId([]);
+                var rune = new Rune('haste', randomX, randomY);
+                rune.name = runeName;
+                for (var lid in lobbies) {
+                    lobbies[lid].hasteRune = rune;
+                    broadcast({
+                        type: 'createRune',
+                        x: randomX,
+                        y: randomY,
+                        rtype: 'haste',
+                        rname: runeName
+                    }, lid);
+                }
+            }, 15000);
+
+            hpRuneInterval = setInterval(function () {
+                var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
+                var randomY = (Math.random() * (Setting.HEIGHT - 350)) + 300;
+                var runeName = helper.randomLobbyId([]);
+                var rune = new Rune('hp', randomX, randomY);
+                rune.name = runeName;
+                for (var lid in lobbies) {
+                    lobbies[lid].hpRune = rune;
+                    broadcast({
+                        type: 'createRune',
+                        x: randomX,
+                        y: randomY,
+                        rtype: 'hp',
+                        rname: runeName
+                    }, lid);
+                }
+            }, 18500);
         }
     };
 
@@ -264,6 +303,49 @@ function Server() {
                             p.fighter.vy = message.vy;
                             p.fighter.x = message.x;
                             p.fighter.y = message.y;
+                            var lobby = lobbies[p.lid];
+
+                            if (lobby.hpRune && lobby.hpRune.name !== undefined) {
+                                var px1 = p.fighter.x;
+                                var px2 = p.fighter.x + Fighter.WIDTH;
+                                var py1 = p.fighter.y;
+                                var py2 = p.fighter.y + Fighter.HEIGHT;
+                                var rx1 = lobby.hpRune.x;
+                                var rx2 = lobby.hpRune.x + Rune.WIDTH;
+                                var ry1 = lobby.hpRune.y;
+                                var ry2 = lobby.hpRune.y + Rune.HEIGHT;
+                                if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
+                                    // collide with hpRune
+                                    console.log("eat rune hp");
+                                    broadcast({
+                                        type: 'runeDisappear',
+                                        rtype: 'hp'
+                                    }, p.lid);
+                                    lobby.hasteRune.name = undefined;
+                                    p.addRune(lobby.hpRune);
+                                }
+                            }
+                            if (lobby.hasteRune && lobby.hasteRune.name !== undefined) {
+                                var px1 = p.fighter.x;
+                                var px2 = p.fighter.x + Fighter.WIDTH;
+                                var py1 = p.fighter.y;
+                                var py2 = p.fighter.y + Fighter.HEIGHT;
+                                var rx1 = lobby.hasteRune.x;
+                                var rx2 = lobby.hasteRune.x + Rune.WIDTH;
+                                var ry1 = lobby.hasteRune.y;
+                                var ry2 = lobby.hasteRune.y + Rune.HEIGHT;
+                                if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
+                                    // collide with hasteRune
+                                    console.log("eat rune haste");
+                                    broadcast({
+                                        type: 'runeDisappear',
+                                        rtype: 'haste'
+                                    }, p.lid);
+                                    lobby.hasteRune.name = undefined;
+                                    lobby.hasteRune.collected_at = new Date();
+                                    p.addRune(lobby.hasteRune);
+                                }
+                            }
                             break;
                         case "attack":
                             //console.log("receive an attack message");
@@ -273,11 +355,12 @@ function Server() {
                             // determine whether have collision with other players
                             var kill = false;
                             var id;
-                            if(p.fighter.isHitting){
-                                for(id in players){
+                            if (p.fighter.isHitting) {
+                                console.log("players" + players);
+                                for (id in lobbies[p.lid].players) {
                                     var opponent = players[id];
-                                    if(p.fighter.hp >0 && opponent.fighter.hp>0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
-                                        if(p.fighter.facingDirection == 'right'){
+                                    if (p.fighter.hp > 0 && opponent.fighter.hp > 0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured) {
+                                        if (p.fighter.facingDirection == 'right') {
 
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
                                             //console.log(tOFRight);
@@ -291,7 +374,7 @@ function Server() {
                                                 opponent.fighter.getHitted(10);
                                                 //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
-                                                if(opponent.fighter.hp<=0){
+                                                if (opponent.fighter.hp <= 0) {
                                                     kill = true;
                                                 }
                                             }
@@ -303,13 +386,13 @@ function Server() {
                                                 && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)) {
                                                 opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
-                                                if(opponent.fighter.hp<=0){
+                                                if (opponent.fighter.hp <= 0) {
                                                     kill = true;
                                                 }
                                             }
                                         }
                                     }
-                                    if(kill) p.lastHit++;
+                                    if (kill) p.lastHit++;
                                 }
                             }
                             break;

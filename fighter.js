@@ -115,7 +115,7 @@ Fighter.prototype.reset = function () {
 }
 
 Fighter.prototype.haste = function () {
-    this.hasteCoef = 2;
+    this.hasteCoef = 1.5;
 }
 
 Fighter.prototype.resetVelocity = function () {

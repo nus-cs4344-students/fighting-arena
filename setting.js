@@ -12,7 +12,7 @@ var Setting = {
     MAX_NAME_LENGTH: 15,			// Frame rate of fighter game
     START_DELAY: 500,				// Delay to ensure game loads before
     LANDSCAPE_ORIENTATION: 90,		// window.orientation value for landscape
-    SERVER_NAME : "192.168.1.100"	// server name of fighter game
+    SERVER_NAME : "192.168.1.104"	// server name of fighter game
     //SERVER_NAME: "localhost"	// server name of fighter game
 
 }

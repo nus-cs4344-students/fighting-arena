@@ -23,14 +23,11 @@ function Player(sid, pid, xPos, yPos, username, lid) {
         if (rune.type === 'hp') {
             that.fighter.reset();
         } else if (rune.type === 'haste') {
-            console.log("haste");
             that.fighter.haste();
-            console.log(that.fighter.hasteCoef);
         }
     };
 
     this.addRune = function (rune) {
-        console.log(rune.type);
         that.runes[rune.type] = rune;
         performRune(rune);
         if (rune.type === 'haste') {
