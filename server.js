@@ -101,7 +101,7 @@ function Server() {
             lid: lid
         }, lid);
         //count actually has same function as nextPID;
-        lobbies[lid].count++
+        lobbies[lid].count++;
         count++;
 
         console.log("Now we have " + lobbies[lid].count + " players in lobby" + lid);
@@ -150,7 +150,7 @@ function Server() {
                     username: p.username,
                     lastHit: p.lastHit
                 };
-                broadcast(states);
+                broadcast(states,p.lid);
             }
     };
 
@@ -255,7 +255,9 @@ function Server() {
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
                             // determine whether have collision with other players
                             var kill = false;
+                            var id;
                             if(p.fighter.isHitting){
+                                console.log("players"+players);
                                 for(id in players){
                                     var opponent = players[id];
                                     if(p.fighter.hp >0 && opponent.fighter.hp>0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
@@ -278,7 +280,7 @@ function Server() {
                                                 }
                                             }
                                         }
-                                        else if (p.fighter.facingDirection == 'left') {
+                                        else if (p.fighter.facingDirection === 'left') {
                                             if (p.fighter.x >= opponent.fighter.x - 0.5 * Fighter.WIDTH
                                                 && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
