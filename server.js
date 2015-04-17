@@ -135,7 +135,7 @@ function Server() {
                         rname: runeName
                     }, lid);
                 }
-            }, 2500);
+            }, 15000);
 
             hpRuneInterval = setInterval(function () {
                 var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
@@ -153,7 +153,7 @@ function Server() {
                         rname: runeName
                     }, lid);
                 }
-            }, 2500);
+            }, 18500);
         }
     };
 
