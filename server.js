@@ -18,6 +18,8 @@ var LIB_PATH = "./";
 require(LIB_PATH + 'setting.js');
 require(LIB_PATH + 'player.js');
 require(LIB_PATH + 'fighter.js');
+require(LIB_PATH + 'lobby.js');
+require(LIB_PATH + 'helper.js');
 
 function Server() {
     // Private Variables
@@ -27,21 +29,23 @@ function Server() {
     var gameInterval; // Interval variable used for gameLoop 
     var ball;         // the game ball 
     var sockets;      // Associative array for sockets, indexed via player ID
-    var rooms;
+    var lobbies;
     var players;      // Associative array for players, indexed via socket ID
     var pidMap = {};
+    var helper = new Helper();
+
     /*
-     * private method: broadcast(msg)
+     * private method: broadcast(msg, rid)
      *
-     * broadcast takes in a JSON structure and send it to
-     * all players.
+     * broadcast takes in a JSON structure and room id and then send JSON to
+     * all players in the room.
      *
-     * e.g., broadcast({type: "abc", x: 30});
+     * e.g., broadcast({type: "abc", x: 30}, 1);
      */
-    var broadcast = function (msg) {
-        var id;
-        for (id in sockets) {
-            sockets[id].write(JSON.stringify(msg));
+    var broadcast = function (msg, lid) {
+        var _sockets = lobbies[lid].sockets;
+        for (var sid in _sockets) {
+            _sockets[sid].write(JSON.stringify(msg));
         }
     };
 
@@ -56,6 +60,7 @@ function Server() {
     var unicast = function (socket, msg) {
         socket.write(JSON.stringify(msg));
     };
+
 
     /*
      * private method: reset()
@@ -72,35 +77,47 @@ function Server() {
         }
     };
 
-    var newPlayer = function (conn) {
-
+    var newPlayer = function (conn, lid, username) {
         // Send message to new player (the current client)
         // Create player object and insert into players with key = conn.id
         var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
         var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT)) + 1;
-        var direction = count % 2 != 1 ? "left" : "right";
 
-        players[conn.id] = new Player(conn.id, nextPID, randomX, randomY);
-        sockets[conn.id] = conn;
+        players[conn.id] = new Player(conn.id, nextPID, randomX, randomY, username, lid);
+        lobbies[lid] = lobbies[lid] || new Lobby(lid);
+        lobbies[lid].addConnection(conn);
+        var direction = lobbies[lid].nextPlayerDirection;
+        //sockets[conn.id] = conn;
         pidMap[nextPID] = true;
 
         unicast(conn, {type: "assign", pid: nextPID});
         broadcast({
             type: "newPlayer",
-            count: count,
+            count: lobbies[lid].count,
             pid: nextPID,
             x: randomX,
             y: randomY,
             direction: direction,
-        });
+            lid: lid
+        }, lid);
         //count actually has same function as nextPID;
+        lobbies[lid].count++
         count++;
-        console.log("Now we have " + count + " players");
+
+        console.log("Now we have " + lobbies[lid].count + " players in lobby" + lid);
         for (var i = 0; i < 20; i++) {
             if (!(i in pidMap)) {
                 nextPID = i;
             }
         }
+
+        if (gameInterval == undefined) {
+            console.log("game started");
+            gameInterval = setInterval(function () {
+                gameLoop();
+            }, 1000 / Setting.FRAME_RATE);
+        }
+
         // Updates the nextPID to issue (flip-flop between 1 and 2)
     };
 
@@ -132,7 +149,7 @@ function Server() {
                 facingDirection: p.fighter.facingDirection,
                 username: p.username
             };
-            broadcast(states);
+            broadcast(states, p.lid);
         }
     };
 
@@ -150,41 +167,48 @@ function Server() {
             var sockjs = require('sockjs');
             var sockjs_opts = {sockjs_url: "http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"};
             var sock = sockjs.createServer(sockjs_opts);
-
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
                 console.log("connected");
-                if (count > 19) {
-                    unicast(conn, {type: "full", message: "There are already 20 players playing"});
-                    return;
+                var nums = [];
+                for (var k in lobbies) {
+                    nums.push(lobbies[k].count);
                 }
-                //create new player and brodcast it 
-                newPlayer(conn);
+                unicast(conn, {
+                        type: "lobbyInfo",
+                        lobbies: Object.keys(lobbies),
+                        num_players: nums
+                    }
+                );
+                //create new player and brodcast it
 
-                if (gameInterval == undefined) {
-                    gameInterval = setInterval(function () {
-                        gameLoop();
-                    }, 1000 / Setting.FRAME_RATE);
-                }
 
                 // When the client closes the connection to the server/closes the window
                 conn.on('close', function () {
-                    if (count === 0)
-                        reset();
+                    try {
+                        if (count === 0)
+                            reset();
 
-                    // Decrease player counter
-                    count--;
+                        // Decrease player counter
+                        count--;
 
-                    // Set nextPID to quitting player's PID
-                    nextPID = players[conn.id].pid;
+                        // Set nextPID to quitting player's PID
+                        nextPID = players[conn.id].pid;
 
-                    // Remove player who wants to quit/closed the window
-                    delete players[conn.id];
-                    delete pidMap[nextPID];
-
-                    broadcast({type: "disconnected", pid: nextPID});
-
-                    console.log("disconnected");
+                        // Remove player who wants to quit/closed the window
+                        var lid = players[conn.id].lid;
+                        lobbies[lid].count--;
+                        delete players[conn.id];
+                        delete pidMap[nextPID];
+                        if (lobbies[lid].count === 0) {
+                            delete lobbies[lid];
+                        } else {
+                            broadcast({type: "disconnected", pid: nextPID}, lid);
+                            console.log("disconnected");
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
                 });
 
                 // When the client send something to the server.
@@ -192,17 +216,30 @@ function Server() {
                     var message = JSON.parse(data);
                     var p = players[conn.id];
 
-                    if (p === undefined) {
-                        // we received data from a connection with
-                        // no corresponding player.  don't do anything.
-                        return;
-                    }
+                    //if (p === undefined) {
+                    //    // we received data from a connection with
+                    //    // no corresponding player.  don't do anything.
+                    //    return;
+                    //}
 
                     switch (message.type) {
-                        // one of the player moves the mouse.
+                        case 'createLobby':
+                            // create lobby and create the player
+                            console.log("craete_lobby");
+                            var ids = Object.keys(lobbies);
+                            var lid = helper.randomLobbyId(ids);
+                            console.log("fafafa" + lid);
+                            newPlayer(conn, lid, message.username);
+                            break;
+                        //one of the player moves the mouse.
                         case "newPlayer":
                             var username = message.username;
                             players[conn.id].username = username;
+                            break;
+                        case "join":
+                            var username = message.username;
+                            var lid = message.lid;
+                            newPlayer(conn, lid, username);
                             break;
                         case "move":
                             p.fighter.vx = message.vx;
@@ -241,8 +278,6 @@ function Server() {
                                                 && p.fighter.x <= (opponent.fighter.x + 1.25 * Fighter.WIDTH)
                                                 && p.fighter.y <= (opponent.fighter.y + 0.5 * Fighter.HEIGHT)
                                                 && p.fighter.y >= (opponent.fighter.y - 0.5 * Fighter.HEIGHT)) {
-                                                //player.fighter.getHitted(HITPOINT_NORMAL);
-                                                //console.log("Player" + id + " got hitted from right with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.getHitted(10);
                                                 opponent.fighter.facingDirection = 'right';
                                             }
@@ -261,8 +296,9 @@ function Server() {
             count = 0;
             nextPID = 0;
             gameInterval = undefined;
-            players = new Object;
-            sockets = new Object;
+            lobbies = {};
+            players = {};
+            sockets = {};
 
             // Standard code to starts the Pong server and listen
             // for connection

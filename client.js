@@ -30,6 +30,8 @@ function FighterClient(username) {
     var isTouchingDown = false;
     var myName = username;          //username in the game
     var joystick;                   //virtual joystick for touch screen
+    var lid;
+    var that = this;
 
     /*
      * private method: showMessage(location, msg)
@@ -44,6 +46,29 @@ function FighterClient(username) {
 
     function showMessage(location, msg) {
         document.getElementById(location).innerHTML = msg;
+    }
+
+    /*
+     * private method: showLobbyInfo(lobbies)
+     * Display the list of lobbies, create buttons
+     * to join the lobby
+     */
+    function showLobbyInfo(lobbies, num_players) {
+        for (var name in lobbies) {
+            var button = "<br><br><button type='button' class='btn btn-success' id='" +
+                lobbies[name] + "'>" + "Join Lobby: " +
+                lobbies[name] + " (" + num_players[name] +
+                " players in the lobby)" + "</button>";
+
+            $('#join-section').append(button);
+            (function (ll) {
+                $('#' + ll).on("click", function (e) {
+                    $("#join-game").modal('hide');
+                    that.start(ll)
+                });
+            }(lobbies[name]))
+        }
+
     }
 
     /*
@@ -99,6 +124,12 @@ function FighterClient(username) {
 
     }
 
+    this.createLobby = function () {
+        sendToServer({
+            type: 'createLobby',
+            username: myName
+        });
+    }
     /*
      * private method: initNetwork(msg)
      *
@@ -114,13 +145,19 @@ function FighterClient(username) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
                     //created player
+                    case "lobbyInfo":
+                        console.log("lobbies");
+                        console.log(message.lobbies);
+                        showLobbyInfo(message.lobbies, message.num_players);
+                        break;
                     case "newPlayer":
                         var pid = message.pid;
                         var initX = message.x;
                         var initY = message.y;
                         var direction = message.direction;
+                        var lid = message.lid;
                         numOfPlayers = message.count + 1;
-                        createPlayer(pid, initX, initY, direction);
+                        createPlayer(pid, initX, initY, direction, lid);
                         break;
                     //player disconnected
                     case "disconnected":
@@ -145,33 +182,11 @@ function FighterClient(username) {
                         fighters[id].isInjured = message.injuryStatus;
                         fighters[id].hp = message.hp;
                         break;
-                    case "updateVelocity":
-                        var t = message.timestamp;
-                        if (t < lastUpdateVelocityAt)
-                            break;
-                        var distance = playArea.height - Ball.HEIGHT - 2 * Paddle.HEIGHT;
-                        // var real_distance = distance+100;
-                        var real_distance = distance + Math.abs(message.ballVY * delay / Fighter.FRAME_RATE);
-                        var coef = real_distance / distance;
-                        var real_vy = message.ballVY * coef;
-                        // var real_vy = message.ballVY;
-                        lastUpdateVelocityAt = t;
-                        ball.vx = message.ballVX;
-                        ball.vy = real_vy;
-                        // Periodically resync ball position to prevent error
-                        // in calculation to propagate.
-                        ball.x = message.ballX;
-                        ball.y = message.ballY;
-                        break;
-                    case "outOfBound":
-                        ball.reset();
-                        myPaddle.reset();
-                        opponentPaddle.reset();
-                        break;
                     default:
                         appendMessage("serverMsg", "unhandled meesage type " + message.type);
                 }
             }
+            console.log("connected");
         } catch (e) {
             console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
         }
@@ -296,7 +311,7 @@ function FighterClient(username) {
         addController();
     }
 
-    function createPlayer(pid, x, y, direction) {
+    function createPlayer(pid, x, y, direction, llid) {
         // console.log(players);
         var p = players[pid];
         p.body.x = x;
@@ -305,17 +320,19 @@ function FighterClient(username) {
         fighters[pid].y = y;
         fighters[pid].facingDirection = direction;
         p.visible = true;
+        lid = llid;
         console.log("created player of " + pid);
         console.log("local postion updated" + x + " " + " " + y);
         sendToServer({
             type: "newPlayer",
             username: myName
         });
-
     }
 
     function deletePlayer(pid) {
+        console.log("my id " + myPID);
         console.log("deleted player of " + pid);
+        console.log(players[pid]);
         players[pid].visible = false;
     }
 
@@ -503,16 +520,30 @@ function FighterClient(username) {
 
     }
 
-    this.start = function () {
+    this.start = function (action) {
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', {
             preload: preload,
             create: create,
             update: update
         });
-        setTimeout(function () {
-            initNetwork();
-        }, Setting.START_DELAY);
+        if (action === 'create') {
+            setTimeout(function () {
+                sendToServer({
+                    type: 'createLobby'
+                });
+            }, Setting.START_DELAY);
+        } else {
+            sendToServer({
+                type: "join",
+                username: myName,
+                lid: action
+            });
+        }
     };
+
+    this.startNetwork = function () {
+        initNetwork();
+    }
     // This will auto run after this script is loaded
 
 }
@@ -524,32 +555,38 @@ function dismissModal() {
 }
 
 $(document).ready(function () {
+    var client;
+    $('#join-game').modal('hide');
     $('#myModal').modal('show');
     $('#myModal').on('hidden.bs.modal', function (e) {
-
         var username = $('#username').val().substring(0, Setting.MAX_NAME_LENGTH);
-        var client = new FighterClient(username);
+        $('#join-game').modal('show');
+        client = new FighterClient(username);
+        client.startNetwork();
+    });
 
+    $("#createButton").click(function () {
+        $('#join-game').modal('hide');
         if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             //if mobile, check device orientation
             if (Math.abs(window.orientation) === Setting.LANDSCAPE_ORIENTATION) {
                 setTimeout(function () {
-                    client.start();
+                    client.start('create');
                 }, Setting.START_DELAY);
             }
 
             $(window).on("orientationchange", function (event) {
                 if (window.orientation === Setting.LANDSCAPE_ORIENTATION) {
                     setTimeout(function () {
-                        client.start();
+                        client.start('create');
                     }, Setting.START_DELAY);
                 }
             });
 
         } else { //starts otherwise
             setTimeout(function () {
-                client.start();
+                client.start('create');
             }, Setting.START_DELAY);
         }
-    })
+    });
 });
