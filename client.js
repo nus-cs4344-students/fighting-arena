@@ -22,6 +22,7 @@ function FighterClient(username) {
     var injuryRecovered = false;
     var hitpointSprite = [];
     var scoreTexts = [];
+    var deletedPlayers = {};
     var fullHP = 1000;
     var hitpointBarScale = 0.35;
     var isTouchingHit = false;
@@ -160,6 +161,7 @@ function FighterClient(username) {
                     //player disconnected
                     case "disconnected":
                         deletePlayer(message.pid);
+
                         break;
                     case "assign":
                         connectedToServer = true;
@@ -168,6 +170,7 @@ function FighterClient(username) {
                         break;
                     case "update":
                         var id = message.pid;
+                        //deletedPlayers[id] = false;
                         if (message.username) {
                             texts[id].text = message.username;
                             scoreTexts[id].setText(message.username+": "+message.lastHit);
@@ -279,6 +282,7 @@ function FighterClient(username) {
             score.anchor.set(1,1);
             score.visible = false;
             tt.visible = false;
+            deletedPlayers[i]=false;
 
         }
         //  Finally some stars to collect
@@ -326,6 +330,7 @@ function FighterClient(username) {
     function createPlayer(pid, x, y, direction, llid) {
         // console.log(players);
         var p = players[pid];
+        deletedPlayers[pid] = false;
         p.body.x = x;
         p.body.y = y;
         fighters[pid].x = x;
@@ -346,12 +351,19 @@ function FighterClient(username) {
         console.log("deleted player of " + pid);
         console.log(players[pid]);
         players[pid].visible = false;
+        scoreTexts[pid].visible = false;
+        hitpointSprite[pid].visible = false;
+        texts[pid].visible = false;
+        deletedPlayers[pid] = true;
+        numOfPlayers--;
     }
 
     function renderGame() {
         //here is for rendering
         num_text.setText('# of players: ' + numOfPlayers);
         for (var i = 0; i < players.length; i++) {
+            if(deletedPlayers[i]) continue;
+
             var animaPlayed = false;
             var player = players[i];
             var fighter = fighters[i];

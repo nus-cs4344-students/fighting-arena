@@ -257,7 +257,6 @@ function Server() {
                             var kill = false;
                             var id;
                             if(p.fighter.isHitting){
-                                console.log("players"+players);
                                 for(id in players){
                                     var opponent = players[id];
                                     if(p.fighter.hp >0 && opponent.fighter.hp>0 && id != conn.id && !p.fighter.isInjured && !opponent.fighter.isInjured){
