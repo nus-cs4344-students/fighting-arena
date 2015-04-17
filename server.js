@@ -256,6 +256,7 @@ function Server() {
                         // Remove player who wants to quit/closed the window
                         var lid = players[conn.id].lid;
                         lobbies[lid].count--;
+                        delete lobbies[lid].players[conn.id];
                         delete players[conn.id];
                         delete pidMap[nextPID];
                         if (lobbies[lid].count === 0) {
