@@ -1,20 +1,31 @@
 /**
  * Created by zchen on 17/4/15.
  */
-function musicPlayer() {
+function MusicPlayer() {
+
+    //private variables
     var isPlaying = false;
     var music = new Audio('./music/bgm.mp3');
     var haste = new Audio('./music/haste.mp3');
     var regen = new Audio('./music/regen.mp3');
 
+    /* Public mthod that
+     * plays haste rune sound
+     */
     this.playHaste = function (){
        haste.play();
     };
 
+    /* Public mthod that
+     * plays hp rune sound
+     */
     this.playRegen = function (){
         regen.play();
     };
 
+    /* Public method that plays bgm,
+     * listen to window events to pause/resume music
+     */
     this.play = function () {
         $(window).on("blur focus", function (e) {
             var prevType = $(this).data("prevType");

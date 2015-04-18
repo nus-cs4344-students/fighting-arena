@@ -2,42 +2,36 @@
 
 function FighterClient(username) {
 
-    var socket;                     // socket used to connect to server 
-    var cursors;
-    var num_text;
-    var bullets;
-    var fireRate = 100;
-    var block_y = Setting.BLOCK_Y;
-    var nextFire = 0;
-    var maxPlayers = 20;
-    var players = [];
-    var hasteRune;
-    var hpRune;
-    var fighters = [];
-    var texts = [];
-    var serverMsg;
-    var hasPlayed = false;
-    var game;
-    var connectedToServer = false;
-    var numOfPlayers = 0;
-    var myPID;
-    var injuryRecovered = false;
-    var hitpointSprite = [];
-    var scoreTexts = {};
-    var deletedPlayers = {};
-    var fullHP = 1000;
-    var hitpointBarScale = 0.35;
-    var isTouchingHit = false;
-    var myName = username;          //username in the game
-    var joystick;                   //virtual joystick for touch screen
-    var lid;
-    var that = this;
-    var mPlayer = new musicPlayer();
+    var socket;                     // Socket used to connect to server
+    var cursors;                    // Store keyboards actions
+    var num_text;                   // Number of player text
+    var block_y = Setting.BLOCK_Y;  // Upper block offset
+    var maxPlayers = 20;            // Max player of a lobby
+    var players = [];               // Array to store players
+    var hasteRune;                  // Haste rune object
+    var hpRune;                     // Hp rune object
+    var fighters = [];              // Array to store fighters
+    var texts = [];                 // Array to store players' name
+    var game;                       // Phaser game object
+    var connectedToServer = false;  // Flag for connection
+    var numOfPlayers = 0;           // Number of players in game
+    var myPID;                      // My player id
+    var injuryRecovered = false;    // Flag for injured
+    var hitpointSprite = [];        // Array to store players' hp bar
+    var scoreTexts = {};            // Object for players' scores
+    var deletedPlayers = {};        // Object to store deleted players
+    var hitpointBarScale = 0.35;    // HP bar scale
+    var isTouchingHit = false;      // Flag for hit
+    var myName = username;          // Username in the game
+    var joystick;                   // Virtual joystick for touch screen
+    var lid;                        // Current lobby id
+    var that = this;                // Scope helper
+    var mPlayer = new MusicPlayer();// Music player
 
     /*
      * private method: showLobbyInfo(lobbies)
-     * Display the list of lobbies, create buttons
-     * to join the lobby
+     * Display the list of lobbies, create buttons dynamically
+     * to join the lobby.
      */
     function showLobbyInfo(lobbies, num_players) {
         for (var name in lobbies) {
@@ -98,7 +92,8 @@ function FighterClient(username) {
 
     /*
      * public method: createLobby()
-     *
+     * The method sends createLobby message to server with
+     * username.
      */
     this.createLobby = function () {
         sendToServer({
@@ -106,6 +101,7 @@ function FighterClient(username) {
             username: myName
         });
     }
+
     /*
      * private method: initNetwork(msg)
      *
@@ -120,7 +116,7 @@ function FighterClient(username) {
             socket.onmessage = function (e) {
                 var message = JSON.parse(e.data);
                 switch (message.type) {
-                    //created player
+                    // server detected that user of this client collect rune
                     case "collectRune":
                         if (message.rtype === 'haste') {
                             mPlayer.playHaste();
@@ -128,6 +124,7 @@ function FighterClient(username) {
                             mPlayer.playRegen();
                         }
                         break;
+                    // server detects that rune should disappear
                     case "runeDisappear":
                         if (message.rtype === 'haste') {
                             hasteRune.visible = false;
@@ -137,6 +134,7 @@ function FighterClient(username) {
                             delete hpRune.name;
                         }
                         break;
+                    // server create a rune
                     case "createRune":
                         var x = message.x;
                         var y = message.y;
@@ -147,15 +145,17 @@ function FighterClient(username) {
                             hasteRune.x = x;
                             hasteRune.y = y;
                         } else {
-                            console.log("hp rune");
                             hpRune['name'] = name;
                             hpRune.x = x;
                             hpRune.y = y;
                         }
                         break;
+                    // server sends lobby info
                     case "lobbyInfo":
                         showLobbyInfo(message.lobbies, message.num_players);
                         break;
+
+                    // server create a new player
                     case "newPlayer":
                         var pid = message.pid;
                         var initX = message.x;
@@ -165,16 +165,21 @@ function FighterClient(username) {
                         numOfPlayers = message.count + 1;
                         createPlayer(pid, initX, initY, direction, lid);
                         break;
-                    //player disconnected
+
+                    // player disconnected
                     case "disconnected":
                         deletePlayer(message.pid);
-
+                        Setting.log(Setting.LOG_INFO, "Player " + message.pid + " disconnected.");
                         break;
+
+                    // assign a player id to client
                     case "assign":
                         connectedToServer = true;
                         myPlayer = players[message.pid];
                         myPID = message.pid;
                         break;
+
+                    // server sends update message
                     case "update":
                         var id = message.pid;
                         if (deletedPlayers[id]) {
@@ -182,10 +187,11 @@ function FighterClient(username) {
                         }
                         if (message.username) {
                             texts[id].text = message.username;
-                            scoreTexts[id].text = [message.username,":",message.lastHit].join(" ");
+                            scoreTexts[id].text = [message.username, ":", message.lastHit].join(" ");
                         }
-                        fighters[id].lastHit = message.lastHit;
 
+                        // update fighter attributes
+                        fighters[id].lastHit = message.lastHit;
                         fighters[id].x = message.x;
                         fighters[id].y = message.y;
                         fighters[id].vx = message.vx;
@@ -196,61 +202,65 @@ function FighterClient(username) {
                         fighters[id].hp = message.hp;
                         fighters[id].hasteCoef = message.hasteCoef;
                         break;
+
+                    // server detects some user is out of current interest
                     case "outOfInterest":
                         if (!deletedPlayers[message.pid])
                             deletePlayer(message.pid);
                         break;
+
                     default:
-                        console.log("serverMsg", "unhandled meesage type " + message.type);
+                        Setting.log(Setting.LOG_INFO, "Unhandled meesage type " + message.type);
                 }
             }
-            console.log("connected");
+            Setting.log(Setting.LOG_INFO, "Connected to server.");
         } catch (e) {
-            console.log("Failed to connect to " + "http://" + Fighter.SERVER_NAME + ":" + Fighter.PORT);
+            Setting.log(Setting.LOG_DEBUG, "Failed to connect to " + "http://" + Setting.SERVER_NAME + ":" + Setting.PORT);
         }
     }
 
+    /* The method is required by Phaser.js,
+     * it pre-loads all assets files.
+     */
     function preload() {
-        //for cropping the image
-        frameWidth = 64;
-        frameHeight = 65;
-        low_frameWidth = 32;
-        low_frameHeight = 32;
-        game.load.image('sky', 'assets/back08.jpg');
+
+        // haste rune image
         game.load.image('haste', 'assets/haste.png');
+
+        // hp rune image
         game.load.image('hpRune', 'assets/hpRune.png');
+
+        // background image
         game.load.image('background', 'assets/background.jpg');
-        //game.load.image('sky', 'assets/sky.png');
-        game.load.image('ground', 'assets/platform.png');
-        game.load.image('star', 'assets/star.png');
+
+        // hp bar image
         game.load.image('hitpoint', 'assets/hitpoint.png');
-        game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
-        //-1 is for frameMax 5 is for margin, 0 for spacing
-        //game.load.spritesheet('louis','assets/louis.png',frameWidth, frameHeight, -1,1,0);
+
+        // character sprite
         game.load.spritesheet('louis', 'assets/characters/louis_lowres.png', 32, 32.5, -1, 0.5, 0);
 
     }
 
+    /* The method is required by Phaser.js,
+     * it creates Phaser game objects
+     */
     function create() {
 
-        // phaser physics world 
+        // Phaser physics world
         game.physics.startSystem(Phaser.Physics.ARCADE);
+
+
+        // Phaser game scale settings
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-
-        //have the game centered horizontally
-
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
         this.scale.setScreenSize(true);
-
-        //screen size will be set automatically
-
-        //add button
 
         // add background
         game.add.tileSprite(0, 0, Setting.FULL_WIDTH, Setting.HEIGHT, 'background');
         game.world.setBounds(0, 0, Setting.FULL_WIDTH, Setting.HEIGHT);
 
+        // add runes
         for (var i = 0; i < 2; i++) {
             var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
             var randomY = (Math.random() * (Setting.HEIGHT - 300)) + 300;
@@ -263,9 +273,10 @@ function FighterClient(username) {
             }
         }
 
+        // add players
         for (var i = 0; i < maxPlayers; i++) {
             randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
-            randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y +1;
+            randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y + 1;
 
             var newPlayer = game.add.sprite(randomX, randomY, 'louis');
             var newHp = game.add.sprite(randomX, randomY, 'hitpoint');
@@ -282,7 +293,7 @@ function FighterClient(username) {
             newPlayer.body.collideWorldBounds = true;
             newHp.body.collideWorldBounds = true;
 
-            //player.animations.add('rightWalk', [13,14,15,16,17], 10, true);
+            // add animation to player
             newPlayer.animations.add('rightWalk', [13, 14, 15, 16], 10, true);
             newPlayer.animations.add('leftWalk', [7, 6, 5, 4, 3], 10, true);
             newPlayer.animations.add('leftHit', [28, 27, 26, 25, 24, 23, 22, 21, 20], 10, true);
@@ -296,21 +307,19 @@ function FighterClient(username) {
             newPlayer.visible = false;
             newHp.visible = false;
 
+            // add name bar to player
             var tt = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
-
             var score = game.add.text(16, 16, '', {fontSize: '20px', fill: '#FFF'});
-
-
             tt.anchor.set(0.5);
             texts[i] = tt;
 
+            // add score
             score.anchor.set(0);
             scoreTexts[i] = score;
             score.visible = false;
             tt.visible = false;
             deletedPlayers[i] = false;
         }
-
 
         //  The # of players
         num_text = game.add.text(16, 16, '# of players: ' + numOfPlayers, {fontSize: '16px', fill: '#000'});
@@ -320,11 +329,14 @@ function FighterClient(username) {
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.D]);
         this.input.keyboard.addKeyCapture([Phaser.Keyboard.A]);
-        var changeKey = this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
-        //    changeKey.onDown.add(nextWeapon, this);
+
+        // add joystick
         addController();
     }
 
+    /* The methods takes in pid, x-position, y-position, facingDrection
+     * and lobby id to create a new player.
+     */
     function createPlayer(pid, x, y, direction, llid) {
         // console.log(players);
         var p = players[pid];
@@ -336,14 +348,16 @@ function FighterClient(username) {
         fighters[pid].facingDirection = direction;
         p.visible = true;
         lid = llid;
-        console.log("created player of " + pid);
-        console.log("local postion updated" + x + " " + " " + y);
+        Setting.log(Setting.LOG_INFO, "Created player of pid: " + pid);
         sendToServer({
             type: "newPlayer",
             username: myName
         });
     }
 
+    /* The method takes in a pid,
+     * and resumes the actions of player of the pid in game
+     */
     function resumePlayer(pid) {
         // console.log(players);
         deletedPlayers[pid] = false;
@@ -353,20 +367,21 @@ function FighterClient(username) {
         texts[pid].visible = true;
     }
 
+    /* The method takes in a pid,
+     * and hide the player in client.
+     */
     function deletePlayer(pid) {
-        console.log("my id " + myPID);
-        console.log("deleted player of " + pid);
-        console.log(players[pid]);
+        Setting.log(Setting.LOG_INFO, "Deleted player of pid: " + pid);
         players[pid].visible = false;
-        //scoreTexts[pid].visible = false;
         hitpointSprite[pid].visible = false;
         texts[pid].visible = false;
         deletedPlayers[pid] = true;
-        //numOfPlayers--;
     }
 
+    /* The method renders players and runes
+     */
     function renderGame() {
-        //here is for rendering
+        // set num_of_players text
         num_text.setText('# of players: ' + numOfPlayers);
         if (hasteRune.hasOwnProperty('name')) {
             hasteRune.visible = true;
@@ -375,10 +390,11 @@ function FighterClient(username) {
             hpRune.visible = true;
         }
 
+        // render players
         for (var i = 0; i < players.length; i++) {
             if (deletedPlayers[i]) continue;
 
-            var animaPlayed = false;
+            // player status
             var player = players[i];
             var fighter = fighters[i];
             var vx = fighters[i].vx;
@@ -388,11 +404,14 @@ function FighterClient(username) {
             var isInjured = fighters[i].isInjured;
             var hp = fighters[i].hp;
             var healthBar = hitpointSprite[i];
+
+            // score bar
             scoreTexts[i].visible = true;
             texts[i].visible = true;
             texts[i].x = fighters[i].x + 22;
             texts[i].y = fighters[i].y - 8;
 
+            // update player position
             if (i !== myPID) {
                 player.body.x = fighter.x;
                 player.body.y = fighter.y;
@@ -400,9 +419,6 @@ function FighterClient(username) {
                 healthBar.body.y = fighter.y;
             }
 
-            //console.log(fighters[i].hp);
-            //console.log(fighters[i].isInjured);
-            //console.log(vx+"vy:"+vy);
             if (vx !== undefined && vy !== undefined) {
                 player.visible = true;
                 healthBar.visible = true;
@@ -447,19 +463,20 @@ function FighterClient(username) {
                         player.body.velocity.y = vy;
                     }
                 }
-                if (hp >= 0)
-                    healthBar.scale.setTo(hitpointBarScale * hp / fullHP, hitpointBarScale);
+                if (hp >= 0) {
+                    healthBar.scale.setTo(hitpointBarScale * hp / Fighter.HP, hitpointBarScale);
+                }
             }
         }
     }
 
+    /* The method is required by Phaser.js
+     * it updates game objects' status and
+     * render the game.
+     */
     function update() {
 
         renderGame();
-        //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        //game.physics.arcade.overlap(player,opponent, hitOpponent,null,this);
-        //game.physics.arcade.overlap(player, stars, collectStar, null, this);
-        //  Reset the players velocity (movement)
         var vx = 0;
         var vy = 0;
         var isHitting = false;
@@ -517,21 +534,23 @@ function FighterClient(username) {
                 });
             }
             scores = [];
-            for(var i=0;i<maxPlayers;i++){
-                if((myPlayer.body.x-Setting.WIDTH/2)<=0){
+            for (var i = 0; i < maxPlayers; i++) {
+                if ((myPlayer.body.x - Setting.WIDTH / 2) <= 0) {
                     scoreTexts[i].x = 0;
-                }else if((myPlayer.body.x+Setting.WIDTH/2)>Setting.FULL_WIDTH){
-                    scoreTexts[i].x = Setting.FULL_WIDTH-Setting.WIDTH;
-                }else{
-                    scoreTexts[i].x = myPlayer.body.x-Setting.WIDTH/2;
+                } else if ((myPlayer.body.x + Setting.WIDTH / 2) > Setting.FULL_WIDTH) {
+                    scoreTexts[i].x = Setting.FULL_WIDTH - Setting.WIDTH;
+                } else {
+                    scoreTexts[i].x = myPlayer.body.x - Setting.WIDTH / 2;
                 }
 
-                if(fighters[i].lastHit!==undefined)
+                if (fighters[i].lastHit !== undefined)
                     scores.push(i);
             }
-            scores.sort(function(a,b){return (fighters[b].lastHit-fighters[a].lastHit)});
-            for(i=0;i<scores.length;i++){
-                scoreTexts[scores[i]].y = 40+30*i;
+            scores.sort(function (a, b) {
+                return (fighters[b].lastHit - fighters[a].lastHit)
+            });
+            for (i = 0; i < scores.length; i++) {
+                scoreTexts[scores[i]].y = 40 + 30 * i;
             }
 
             num_text.x = scoreTexts[0].x;
@@ -539,39 +558,8 @@ function FighterClient(username) {
 
     }
 
-    function fire() {
-
-        if (game.time.now > nextFire && bullets.countDead() > 0) {
-            nextFire = game.time.now + fireRate;
-
-            var bullet = bullets.getFirstExists(false);
-
-            bullet.reset(player.x, player.y);
-
-            //bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
-            x = 1000;
-            y = player.y;
-            speed = 700;
-            maxTime = 500;
-            bullet.rotation = game.physics.arcade.moveToXY(bullet, x, y, speed, maxTime);
-        }
-    }
-
-    function hitOpponent(player, opponent) {
-        opponentStatus = -1;
-        //console.log(hasPlayed, playerStatus, opponentStatus);
-        if (!hasPlayed && playerStatus == 1 && opponentStatus == -1) {
-            opponent.animations.play('leftHitted');
-            opponent.body.x += 20;
-            playerStatus = 0;
-            opponentStatus = 0;
-            hasPlayed = true;
-        } else {
-            opponent.animations.stop();
-            hasPlayed = false;
-        }
-    }
-
+    /* The public method to start game
+     */
     this.start = function (action) {
         game = new Phaser.Game(Setting.WIDTH, Setting.HEIGHT, Phaser.AUTO, '', {
             preload: preload,
@@ -594,12 +582,16 @@ function FighterClient(username) {
         }
     };
 
+    /* The public method to startNetwork connection
+     */
     this.startNetwork = function () {
         initNetwork();
-    }
-    // This will auto run after this script is loaded
+    };
 
 }
+
+/* The method to dismiss bootstrap modal.
+ */
 
 function dismissModal() {
     if ($('#username').val()) {
@@ -611,6 +603,8 @@ $(document).ready(function () {
     var client;
     $('#join-game').modal('hide');
     $('#myModal').modal('show');
+
+    // username entered
     $('#myModal').on('hidden.bs.modal', function (e) {
         var username = $('#username').val().substring(0, Setting.MAX_NAME_LENGTH);
         $('#join-game').modal('show');
@@ -618,10 +612,12 @@ $(document).ready(function () {
         client.startNetwork();
     });
 
+    // create a lobby button clicked.
     $("#createButton").click(function () {
         $('#join-game').modal('hide');
+
+        //if mobile, check device orientation
         if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            //if mobile, check device orientation
             if (Math.abs(window.orientation) === Setting.LANDSCAPE_ORIENTATION) {
                 setTimeout(function () {
                     client.start('create');

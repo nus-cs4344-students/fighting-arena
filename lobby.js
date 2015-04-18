@@ -4,7 +4,6 @@
  */
 
 
-// enforce strict/clean programming
 "use strict";
 
 function Lobby(lid){
@@ -18,11 +17,16 @@ function Lobby(lid){
     this.players = {};
     var that = this;
 
-
+    /* Public Method to add connection to
+     * lobby
+     */
     this.addConnection = function (conn) {
         that.sockets[conn.id] = conn;
     };
 
+    /* Public method to calculate next player's
+     * facing direction
+     */
     this.nextPlayerDirection = function (){
         return that.count % 2 != 1 ? "left" : "right";
     };

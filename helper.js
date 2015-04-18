@@ -6,6 +6,8 @@
 'use strict';
 
 function Helper() {
+
+    // lobby names
     var lobbyNames = ["Apple", "Apricot", "Banana", "Bilberry",
         "Blackberry", "Blackcurrant", "Blueberry", "Boysenberry",
         "Cantaloupe", "Currant", "Cherry", "Cherimoya", "Cloudberry",
@@ -18,6 +20,7 @@ function Helper() {
         "Nectarine", "Olive", "Orange", "Mandarine", "Blood",
         "Tangerine", "Papaya", "Passionfruit", "Peach", "Pear", "Persimmon"];
 
+    // add includes function to array
     if (![].includes) {
         Array.prototype.includes = function(searchElement /*, fromIndex*/ ) {
             var O = Object(this);
@@ -46,10 +49,12 @@ function Helper() {
         };
     }
 
+    // take a random name from lobbyNames
     var randomString = function () {
         return lobbyNames[Math.floor(Math.random()*lobbyNames.length)]
     };
 
+    // return a unique lobbyName
     this.randomLobbyId = function (ids) {
         ids = ids || [];
         var id = randomString();

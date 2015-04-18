@@ -1,19 +1,9 @@
 /*
- * Paddle.js
- * Implementation of the paddle objects in Pong.
- * Assignment 2 for CS4344, AY2013/14.
- * Modified from Davin Choo's AY2012/13 version.
- *
- * Changes from AY2012/13:
- *  - Added acceleration 
- *
- * Usage: 
- *   require('paddle.js') in both server and client.
+ * fighter.js
+ * Fighter object
  */
 
-// enforce strict/clean programming
 "use strict";
-
 function Fighter(xPos, yPos, status) {
     // Public variables
     this.x;
@@ -38,7 +28,9 @@ function Fighter(xPos, yPos, status) {
 
 // Static variables
 Fighter.WIDTH = 32;
+Fighter.HP = 1000;
 Fighter.HEIGHT = 32;
+
 /*
  * public method: move(newx,newy)
  *
@@ -60,95 +52,47 @@ Fighter.prototype.move = function (newx, newy) {
     else
         this.y = newy;
 
-}
-
-/*
- * public method: moveOneStepLeft()
- *
- * Move the fighter to new x-position by calculating
- * the velocity.
- */
-Fighter.prototype.moveOneStepLeft = function () {
-    var newx = this.x - this.vx; // 10 is the "scaling factor"
-    this.move(newx, this.y);
-}
-
-/*
- * public method: moveOneStepRight()
- *
- * Move the fighter to new x-position by calculating
- * the velocity.
- */
-Fighter.prototype.moveOneStepRight = function () {
-    var newx = this.x + this.vx; // 10 is the "scaling factor"
-    this.move(newx, this.y);
-}
-
-/*
- * public method: moveOneStepUp()
- *
- * Move the fighter to new y-position by calculating
- * the velocity.
- */
-Fighter.prototype.moveOneStepUp = function () {
-    var newy = this.y - this.vy; // 10 is the "scaling factor"
-    this.move(this.x, newy);
-}
-
-/*
- * public method: moveOneStepDown()
- *
- * Move the fighter to new y-position by calculating
- * the velocity.
- */
-Fighter.prototype.moveOneStepDown = function () {
-    var newy = this.y + this.vy; // 10 is the "scaling factor"
-    this.move(this.x, newy);
-}
+};
 
 /*
  * public method: reset()
  *
- * Reset the position of paddle
+ * Reset the fighter hp
  */
 Fighter.prototype.reset = function () {
     this.hp = 1000;
-}
+};
 
+
+/*
+ * public method: haste()
+ *
+ * Speed up player
+ */
 Fighter.prototype.haste = function () {
     this.hasteCoef = 1.5;
-}
+};
 
+/*
+ * public method: resetVelocity()
+ *
+ * Reset player velocity
+ */
 Fighter.prototype.resetVelocity = function () {
     this.hasteCoef = 1;
-}
+};
 
+
+/*
+ * public method: getHitted(damage)
+ *
+ * player takes damage
+ */
 Fighter.prototype.getHitted = function (damage) {
     this.hp -= damage;
     if (this.hp <= 0) this.hp = 0;
     this.isInjured = true;
-}
-/*
- * public method: isAtLeft()
- * public method: isAtBottom()
- *
- * Return true iff the paddle is at the top (and bottom) respectively
- */
-// Paddle.prototype.isAtLeftTop = function() {
-// 	return (this.y < pong.HEIGHT/2);
-// }
-// Paddle.prototype.isAtLeftBottom = function() {
-// 	return (this.y > Pong.HEIGHT/2);
-// }
-// Paddle.prototype.isAtRightTop = function() {
-// 	return (this.y < Pong.HEIGHT/2);
-// }
-// Paddle.prototype.isAtRightTop = function() {
-// 	return (this.y < Pong.HEIGHT/2);
-// }
+};
 
 
-// For node.js require
 global.Fighter = Fighter;
-
-// vim:ts=4:sw=4:expandtab

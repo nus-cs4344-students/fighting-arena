@@ -1,17 +1,3 @@
-/*
- * PongServer.js
- * A skeleton server for two-player Pong game.
- * Assignment 2 for CS4344, AY2013/14.
- * Modified from Davin Choo's AY2012/13 version.
- *
- * Changes from AY2012/13:
- *  - migrate from socket.io to sockjs
- *
- * Usage: 
- *   node PongServer.js
- */
-
-// enforce strict/clean programming
 "use strict";
 
 var LIB_PATH = "./";
@@ -24,22 +10,22 @@ require(LIB_PATH + 'helper.js');
 
 function Server() {
     // Private Variables
-    var count;        // Keeps track how many people are connected to server
-    var nextPID;      // PID to assign to next connected player (i.e. which player slot is open) 
-    var gameInterval; // Interval variable used for gameLoop 
-    var hpRuneInterval; // Interval variable used for rune generation
-    var hasteRuneInterval; // Interval variable used for rune generation
-    var sockets;      // Associative array for sockets, indexed via player ID
-    var lobbies;
-    var runes = {};
-    var players;      // Associative array for players, indexed via socket ID
-    var pidMap = {};
-    var helper = new Helper();
+    var count;              // Keeps track how many people are connected to server
+    var nextPID;            // PID to assign to next connected player (i.e. which player slot is open)
+    var gameInterval;       // Interval variable used for gameLoop
+    var hpRuneInterval;     // Interval variable used for rune generation
+    var hasteRuneInterval;  // Interval variable used for rune generation
+    var sockets;            // Associative array for sockets, indexed via player ID
+    var lobbies;            // Obejct to store lobbies
+    var runes = {};         // runes
+    var players;            // Associative array for players, indexed via socket ID
+    var pidMap = {};        // Pid store
+    var helper = new Helper(); // helper object
 
     /*
-     * private method: broadcast(msg, rid)
+     * private method: broadcast(msg, lid)
      *
-     * broadcast takes in a JSON structure and room id and then send JSON to
+     * broadcast takes in a JSON structure and lobby id and then send JSON to
      * all players in the room.
      *
      * e.g., broadcast({type: "abc", x: 30}, 1);
@@ -79,9 +65,13 @@ function Server() {
         }
     };
 
+    /* private method that
+     * Send message to new player (the current client),
+     * and creates player object and insert into players
+     * with key = conn.id
+     */
     var newPlayer = function (conn, lid, username) {
-        // Send message to new player (the current client)
-        // Create player object and insert into players with key = conn.id
+
 
         var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
         var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y + 1;
@@ -106,11 +96,11 @@ function Server() {
             direction: direction,
             lid: lid
         }, lid);
-        //count actually has same function as nextPID;
         lobbies[lid].count++;
         count++;
 
-        console.log("Now we have " + lobbies[lid].count + " players in lobby" + lid);
+        Setting.log(Setting.LOG_INFO, "Now we have " + lobbies[lid].count + " players in lobby" + lid);
+
         for (var i = 0; i < 20; i++) {
             if (!(i in pidMap)) {
                 nextPID = i;
@@ -123,6 +113,7 @@ function Server() {
                 gameLoop();
             }, 1000 / Setting.FRAME_RATE);
 
+            // random create hasterune
             hasteRuneInterval = setInterval(function () {
                 var randomX = (Math.random() * (Setting.WIDTH - Fighter.WIDTH)) + 1;
                 var randomY = (Math.random() * (Setting.HEIGHT - 350)) + 300;
@@ -141,6 +132,7 @@ function Server() {
                 }
             }, 15000);
 
+            // random create hprune
             hpRuneInterval = setInterval(function () {
                 var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
                 var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y + 1;
@@ -162,7 +154,6 @@ function Server() {
     };
 
     var gameLoop = function () {
-        // Check if ball is moving
         var id;
         var myid;
         for (myid in players) {
@@ -203,7 +194,6 @@ function Server() {
                         lid: p.lid,
                         lastHit: p.lastHit
                     };
-                    //broadcast(states, p.lid);
                     if (p.lid === myPlayer.lid)
                         unicast(_sockets[myid], states);
                 }
@@ -229,18 +219,20 @@ function Server() {
             var sock = sockjs.createServer(sockjs_opts);
             // Upon connection established from a client socket
             sock.on('connection', function (conn) {
-                console.log("connected");
+
+                Setting.log(Setting.LOG_INFO, "New Connection: " + conn.id);
                 var nums = [];
                 for (var k in lobbies) {
                     nums.push(lobbies[k].count);
                 }
+
+                // sends lobby info for new connection
                 unicast(conn, {
                         type: "lobbyInfo",
                         lobbies: Object.keys(lobbies),
                         num_players: nums
                     }
                 );
-                //create new player and brodcast it
 
 
                 // When the client closes the connection to the server/closes the window
@@ -265,10 +257,10 @@ function Server() {
                             delete lobbies[lid];
                         } else {
                             broadcast({type: "disconnected", pid: nextPID}, lid);
-                            console.log("disconnected");
+                            Setting.log(Setting.LOG_INFO, "Connection disconnected: " + conn.id);
                         }
                     } catch (e) {
-                        console.log(e);
+                        Setting.log(Setting.LOG_DEBUG, "Exception:" + e);
                     }
                 });
 
@@ -277,15 +269,9 @@ function Server() {
                     var message = JSON.parse(data);
                     var p = players[conn.id];
 
-                    //if (p === undefined) {
-                    //    // we received data from a connection with
-                    //    // no corresponding player.  don't do anything.
-                    //    return;
-                    //}
-
                     switch (message.type) {
+                        // create lobby and create the player
                         case 'createLobby':
-                            // create lobby and create the player
                             console.log("craete_lobby");
                             var ids = Object.keys(lobbies);
                             var lid = helper.randomLobbyId(ids);
@@ -296,11 +282,13 @@ function Server() {
                             var username = message.username;
                             players[conn.id].username = username;
                             break;
+                        // client join lobby
                         case "join":
                             var username = message.username;
                             var lid = message.lid;
                             newPlayer(conn, lid, username);
                             break;
+                        // client moves
                         case "move":
                             p.fighter.vx = message.vx;
                             p.fighter.vy = message.vy;
@@ -358,12 +346,11 @@ function Server() {
                                 }
                             }
                             break;
+                        // client attacks
                         case "attack":
-                            //console.log("receive an attack message");
                             p.fighter.isInjured = message.isInjured;
                             p.fighter.isHitting = message.isHitting;
                             p.fighter.facingDirection = message.facingDirection; //'left' and 'right'
-                            // determine whether have collision with other players
                             var kill = false;
                             var id;
                             if (p.fighter.isHitting) {
@@ -373,16 +360,11 @@ function Server() {
                                         if (p.fighter.facingDirection == 'right') {
 
                                             var tOFRight = opponent.fighter.x + 0.5 * Fighter.WIDTH;
-                                            //console.log(tOFRight);
                                             var tOFLeft = opponent.fighter.x - 1.25 * Fighter.WIDTH;
-                                            //console.log(tOFLeft);
                                             var tOFTop = (opponent.fighter.y + 0.5 * Fighter.HEIGHT);
-                                            //console.log(tOFTop);
                                             var tOFBtm = (opponent.fighter.y - 0.5 * Fighter.HEIGHT);
-                                            //console.log(tOFBtm);
                                             if (p.fighter.x <= tOFRight && p.fighter.x >= tOFLeft && p.fighter.y <= tOFTop && p.fighter.y >= tOFBtm) {
                                                 opponent.fighter.getHitted(10);
-                                                //console.log("Player" + id + " got hitted from left with hp left: " + opponent.fighter.hp);
                                                 opponent.fighter.facingDirection = 'left';
                                                 if (opponent.fighter.hp <= 0) {
                                                     kill = true;
@@ -398,6 +380,7 @@ function Server() {
                                                 opponent.fighter.facingDirection = 'right';
                                                 if (opponent.fighter.hp <= 0) {
                                                     kill = true;
+                                                    Setting.log(Setting.LOG_INFO, "Player was killed: " + opponent.pid);
                                                 }
                                             }
                                         }
@@ -408,7 +391,7 @@ function Server() {
                             }
                             break;
                         default:
-                            console.log("Unhandled " + message.type);
+                            Setting.log(Setting.LOG_INFO, "Unhandled " + message.type);
                     }
                 }); // conn.on("data"
             }); // socket.on("connection"
@@ -428,13 +411,13 @@ function Server() {
             sock.installHandlers(httpServer, {prefix: '/fighter'});
             httpServer.listen(3333, '0.0.0.0');
             app.use(express.static(__dirname));
-            console.log("Server running on http://0.0.0.0:" + 3333 + "\n");
-            console.log("Visit http://localhost:" + 3333 + "/fighter.html in your " +
+            Setting.log(Setting.LOG_INFO, "Server running on http://0.0.0.0:" + 3333 + "\n");
+            Setting.log(Setting.LOG_INFO, "Visit http://localhost:" + 3333 + "/fighter.html in your " +
             "browser to start the game");
 
         } catch (e) {
-            console.log("Cannot listen to " + 3333);
-            console.log("Error: " + e);
+            Setting.log(Setting.LOG_DEBUG, "Cannot listen to " + 3333);
+            Setting.log(Setting.LOG_DEBUG, "Error: " + e);
         }
     }
 }
@@ -442,5 +425,3 @@ function Server() {
 // This will auto run after this script is loaded
 var gameServer = new Server();
 gameServer.start();
-
-// vim:ts=4:sw=4:expandtab
