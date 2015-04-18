@@ -318,7 +318,7 @@ function Server() {
                                 var ry1 = lobby.hpRune.y;
                                 var ry2 = lobby.hpRune.y + Rune.HEIGHT;
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
-                                    lobby.hasteRune.name = undefined;
+                                    lobby.hpRune.name = undefined;
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'hp'
