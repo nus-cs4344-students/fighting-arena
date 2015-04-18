@@ -84,7 +84,7 @@ function Server() {
         // Create player object and insert into players with key = conn.id
 
         var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
-        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + Setting.BLOCK_Y+1;
+        var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y + 1;
         var rune = new Rune('haste');
         rune.collected_at = new Date();
 
@@ -143,7 +143,7 @@ function Server() {
 
             hpRuneInterval = setInterval(function () {
                 var randomX = (Math.random() * (Setting.FULL_WIDTH - Fighter.WIDTH)) + 1;
-                var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT+Setting.BLOCK_Y)) + Setting.BLOCK_Y+1;
+                var randomY = (Math.random() * (Setting.HEIGHT - Fighter.HEIGHT + Setting.BLOCK_Y)) + Setting.BLOCK_Y + 1;
                 var runeName = helper.randomLobbyId([]);
                 var rune = new Rune('hp', randomX, randomY);
                 rune.name = runeName;
@@ -165,7 +165,7 @@ function Server() {
         // Check if ball is moving
         var id;
         var myid;
-        for(myid in players){
+        for (myid in players) {
             var myPlayer = players[myid];
             var myx = myPlayer.fighter.x;
             var _sockets = lobbies[myPlayer.lid].sockets;
@@ -177,12 +177,12 @@ function Server() {
                 var vx = p.fighter.vx;
                 var vy = p.fighter.vy;
                 // the opponents are not within the interest area. we just do not send sockets
-                var isPlayersNearBoundry = (myx<Setting.WIDTH/2 && xx<Setting.WIDTH*1.5)
-                     || (myx>Setting.FULL_WIDTH-Setting.WIDTH/2 && xx>Setting.FULL_WIDTH-Setting.WIDTH*1.5);
-                var isOpponentInRangeOfInterest = xx<(myx-Setting.WIDTH/2-Fighter.WIDTH*2) || xx>(myx+Setting.WIDTH/2+Fighter.WIDTH*2);
-                if(!isPlayersNearBoundry && isOpponentInRangeOfInterest){
-                    unicast(_sockets[myid],{type:"outOfInterest",pid:p.pid});
-                }else {
+                var isPlayersNearBoundry = (myx < Setting.WIDTH / 2 && xx < Setting.WIDTH * 1.5)
+                    || (myx > Setting.FULL_WIDTH - Setting.WIDTH / 2 && xx > Setting.FULL_WIDTH - Setting.WIDTH * 1.5);
+                var isOpponentInRangeOfInterest = xx < (myx - Setting.WIDTH / 2 - Fighter.WIDTH * 2) || xx > (myx + Setting.WIDTH / 2 + Fighter.WIDTH * 2);
+                if (!isPlayersNearBoundry && isOpponentInRangeOfInterest) {
+                    unicast(_sockets[myid], {type: "outOfInterest", pid: p.pid});
+                } else {
                     var date = new Date();
                     var currentTime = date.getTime();
                     var states = {
@@ -201,16 +201,16 @@ function Server() {
                         username: p.username,
                         hasteCoef: p.fighter.hasteCoef,
                         lid: p.lid,
-                        lastHit:p.lastHit
+                        lastHit: p.lastHit
                     };
                     //broadcast(states, p.lid);
-                    if(p.lid===myPlayer.lid)
-                        unicast(_sockets[myid],states);
-                }   
-                
+                    if (p.lid === myPlayer.lid)
+                        unicast(_sockets[myid], states);
+                }
+
             }
         }
-        
+
     };
 
     /*
@@ -324,7 +324,7 @@ function Server() {
                                         rtype: 'hp'
                                     }, p.lid);
 
-                                    unicast(conn,{
+                                    unicast(conn, {
                                         type: 'collectRune',
                                         rtype: 'hp'
                                     });
@@ -343,13 +343,12 @@ function Server() {
                                 if (px1 < rx2 && px2 > rx1 && py1 < ry2 && py2 > ry1) {
                                     // collide with hasteRune
                                     lobby.hasteRune.name = undefined;
-
                                     broadcast({
                                         type: 'runeDisappear',
                                         rtype: 'haste'
                                     }, p.lid);
 
-                                    unicast(conn,{
+                                    unicast(conn, {
                                         type: 'collectRune',
                                         rtype: 'haste'
                                     });
