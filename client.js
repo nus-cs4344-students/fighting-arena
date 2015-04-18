@@ -5,13 +5,11 @@ function FighterClient(username) {
     var socket;                     // socket used to connect to server 
     var cursors;
     var num_text;
-    var stars;
     var bullets;
     var fireRate = 100;
     var block_y = Setting.BLOCK_Y;
     var nextFire = 0;
     var maxPlayers = 20;
-    var currentWeapon = 0;
     var players = [];
     var hasteRune;
     var hpRune;
@@ -37,21 +35,6 @@ function FighterClient(username) {
     var mPlayer = new musicPlayer();
 
     /*
-     * private method: showMessage(location, msg)
-     *
-     * Display a text message on the web page.  The 
-     * parameter location indicates the class ID of
-     * the HTML element, and msg indicates the message.
-     *
-     * The new message replaces any existing message
-     * being shown.
-     */
-
-    function showMessage(location, msg) {
-        document.getElementById(location).innerHTML = msg;
-    }
-
-    /*
      * private method: showLobbyInfo(lobbies)
      * Display the list of lobbies, create buttons
      * to join the lobby
@@ -75,22 +58,6 @@ function FighterClient(username) {
     }
 
     /*
-     * private method: appendMessage(location, msg)
-     *
-     * Display a text message on the web page.  The 
-     * parameter location indicates the class ID of
-     * the HTML element, and msg indicates the message.
-     *
-     * The new message is displayed ON TOP of any 
-     * existing messages.  A timestamp prefix is added
-     * to the message displayed.
-     */
-    function appendMessage(location, msg) {
-        var prev_msgs = document.getElementById(location).innerHTML;
-        document.getElementById(location).innerHTML = "[" + new Date().toString() + "] " + msg + "<br />" + prev_msgs;
-    }
-
-    /*
      * private method: sendToServer(msg)
      *
      * The method takes in a JSON structure and send it
@@ -104,10 +71,13 @@ function FighterClient(username) {
         socket.send(JSON.stringify(msg));
     }
 
+    /*
+     * private method: addController()
+     * The method adds virtual game joystick to
+     * browsers which support touch screen.(mobile devices)
+     */
     function addController() {
-
         if (VirtualJoystick.touchScreenAvailable()) {
-
             joystick = new VirtualJoystick({
                 container: document.getElementById('container'),
                 mouseSupport: true,
@@ -124,9 +94,12 @@ function FighterClient(username) {
                 isTouchingHit = false;
             });
         }
-
     }
 
+    /*
+     * public method: createLobby()
+     *
+     */
     this.createLobby = function () {
         sendToServer({
             type: 'createLobby',
@@ -228,7 +201,7 @@ function FighterClient(username) {
                             deletePlayer(message.pid);
                         break;
                     default:
-                        appendMessage("serverMsg", "unhandled meesage type " + message.type);
+                        console.log("serverMsg", "unhandled meesage type " + message.type);
                 }
             }
             console.log("connected");
