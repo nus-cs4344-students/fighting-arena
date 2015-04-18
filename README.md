@@ -47,9 +47,9 @@ In your teminal, run:
 ### Play Game in browser
 In your browser, go to:
 
-```http://server_ip:3333/fighter.html```
+``` http://server_ip:3333/fighter.html ```
 
-and play the game.
+to play the game.
 
 ***Enjoy!***
 
