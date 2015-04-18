@@ -17,7 +17,6 @@ function Server() {
     var hasteRuneInterval;  // Interval variable used for rune generation
     var sockets;            // Associative array for sockets, indexed via player ID
     var lobbies;            // Obejct to store lobbies
-    var runes = {};         // runes
     var players;            // Associative array for players, indexed via socket ID
     var pidMap = {};        // Pid store
     var helper = new Helper(); // helper object
